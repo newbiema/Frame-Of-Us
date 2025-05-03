@@ -54,50 +54,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   <!-- SweetAlert -->
   <?php if (!empty($message)) : ?>
-  <script>
-    Swal.fire({
+    <script>
+      Swal.fire({
         icon: '<?= $status ?>',
         title: '<?= $status === "success" ? "Berhasil!" : "Oops..." ?>',
         text: '<?= $message ?>',
         confirmButtonText: 'OK'
-    }).then(() => {
+      }).then(() => {
         <?php if ($status === "success") : ?>
-            window.location.href = 'upload.php';
+          window.location.href = 'upload.php';
         <?php endif; ?>
-    });
-  </script>
+      });
+    </script>
   <?php endif; ?>
 
   <!-- Form Upload Foto -->
   <div class="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow-lg">
     <h1 class="text-2xl font-bold text-center text-pink-600 mb-4">Upload Foto</h1>
     <form action="upload.php" method="POST" enctype="multipart/form-data">
+      
+      <!-- Deskripsi Foto -->
       <div class="mb-4">
         <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi Foto</label>
-        <textarea name="description" id="description" required rows="4" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Masukkan deskripsi foto"></textarea>
+        <textarea name="description" id="description" required rows="4"
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+          placeholder="Masukkan deskripsi foto"></textarea>
       </div>
 
+      <!-- Pilih Foto -->
       <div class="mb-4">
         <label for="foto" class="block text-sm font-medium text-gray-700">Pilih Foto</label>
-        <input type="file" name="foto" id="foto" accept="image/*" required class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+        <input type="file" name="foto" id="foto" accept="image/*" required
+          class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
       </div>
 
+      <!-- Preview Gambar -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Preview</label>
+        <img id="preview-image" class="w-full h-48 object-cover rounded-md border" src="#" alt="Preview" style="display: none;" />
+      </div>
+
+      <!-- Tombol -->
       <div class="grid grid-cols-1 gap-3 mt-4">
+        <button type="submit"
+          class="w-full py-2 bg-pink-600 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 transition">
+          Upload Foto
+        </button>
+        <a href="../index.php">
+          <button type="button"
+            class="w-full py-2 border border-pink-600 text-pink-600 font-semibold rounded-lg shadow-md hover:bg-pink-100 transition">
+            Lihat Web
+          </button>
+        </a>
+      </div>
 
-<!-- Tombol Upload -->
-<button type="submit" class="w-full py-2 bg-pink-600 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 transition">Upload Foto</button>
-
-<!-- Tombol Lihat Web -->
-<a href="../index.php">
-  <button type="button" class="w-full py-2 border border-pink-600 text-pink-600 font-semibold rounded-lg shadow-md hover:bg-pink-100 transition">Lihat Web</button>
-</a>
-
-</div>
-
-
-      
     </form>
   </div>
 
+  <!-- Script Preview Gambar -->
+  <script>
+    document.getElementById('foto').addEventListener('change', function(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('preview-image');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    });
+  </script>
 </body>
 </html>

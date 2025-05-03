@@ -18,6 +18,8 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard Admin</title>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -76,13 +78,17 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
             <td class="px-6 py-4"><?php echo htmlspecialchars($row['description']); ?></td>
             <td class="px-6 py-4">
               <img src="../uploads/<?php echo htmlspecialchars($row['filename']); ?>"
-                   onclick="openLightbox(this.src)"
-                   class="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:scale-105 transition duration-200">
+                  onclick="openLightbox(this.src)"
+                  class="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:scale-105 transition duration-200">
             </td>
             <td class="px-6 py-4"><?php echo date("d M Y", strtotime($row['created_at'])); ?></td>
-            <td class="px-6 py-4 space-x-2">
-              <a href="edit.php?id=<?php echo $row['id']; ?>" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-medium shadow transition">Edit</a>
-              <button onclick="confirmDelete(<?php echo $row['id']; ?>)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-medium shadow transition">Hapus</button>
+            <td class="px-6 py-4 flex items-center gap-3">
+              <a href="edit.php?id=<?php echo $row['id']; ?>" title="Edit" class="text-blue-600 hover:text-blue-800 text-lg">
+                <i class="fas fa-pen-to-square"></i>
+              </a>
+              <button onclick="confirmDelete(<?php echo $row['id']; ?>)" title="Hapus" class="text-red-600 hover:text-red-800 text-lg">
+                <i class="fas fa-trash-alt"></i>
+              </button>
             </td>
           </tr>
           <?php endwhile; ?>
@@ -90,6 +96,8 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
       </table>
     </div>
   </div>
+
+
 </div>
 
 <!-- Modal Lightbox -->
