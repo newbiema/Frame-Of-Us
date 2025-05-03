@@ -21,6 +21,11 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+<style>
+  table {
+    min-width: 600px;
+  }
+</style>
 <body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
 
 <div class="p-6 max-w-7xl mx-auto">
@@ -33,7 +38,7 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
   </header>
 
   <!-- Statistik -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
     <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
       <div>
         <p class="text-gray-500 text-sm">Total Foto</p>
@@ -70,7 +75,9 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
             <td class="px-6 py-4"><?php echo $no++; ?></td>
             <td class="px-6 py-4"><?php echo htmlspecialchars($row['description']); ?></td>
             <td class="px-6 py-4">
-              <img src="../uploads/<?php echo htmlspecialchars($row['filename']); ?>" class="h-16 w-16 object-cover rounded-lg border">
+              <img src="../uploads/<?php echo htmlspecialchars($row['filename']); ?>"
+                   onclick="openLightbox(this.src)"
+                   class="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:scale-105 transition duration-200">
             </td>
             <td class="px-6 py-4"><?php echo date("d M Y", strtotime($row['created_at'])); ?></td>
             <td class="px-6 py-4 space-x-2">
@@ -83,6 +90,12 @@ $data = $conn->query("SELECT * FROM photos ORDER BY created_at DESC");
       </table>
     </div>
   </div>
+</div>
+
+<!-- Modal Lightbox -->
+<div id="lightboxModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+  <span onclick="closeLightbox()" class="absolute top-5 right-5 text-white text-3xl cursor-pointer">&times;</span>
+  <img id="lightboxImg" src="" class="max-w-3xl max-h-[80vh] rounded shadow-xl">
 </div>
 
 <script>
@@ -101,6 +114,15 @@ function confirmDelete(id) {
       window.location.href = 'delete.php?id=' + id;
     }
   })
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightboxModal').classList.remove('hidden');
+}
+
+function closeLightbox() {
+  document.getElementById('lightboxModal').classList.add('hidden');
 }
 </script>
 

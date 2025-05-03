@@ -190,9 +190,11 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
                 </button>
 
                 <!-- Deskripsi Foto -->
-                <p class='text-pink-500 text-base cute-font leading-relaxed group-hover:text-pink-700 transition-colors duration-300'>
+
+                <p class='flex items-center justify-center gap-2 bg-pink-50/80 text-pink-600 text-sm cute-font px-4 py-2 rounded-xl shadow-inner opacity-80 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out'>
                   {$row['description']}
                 </p>
+
 
               </div>
             </div>
