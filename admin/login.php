@@ -3,6 +3,7 @@ session_start();
 include '../db.php';
 
 $error = "";
+$success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
@@ -16,9 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user['role'] == 'admin') {
             $_SESSION['login'] = true;
             $_SESSION['role'] = 'admin';
-            header("Location: dashboard.php");
-            exit;
+            $success = true; // Biarkan alert sukses muncul, lalu redirect lewat JS
         }
+
     } else {
         $error = "Username atau password salah.";
     }
@@ -78,16 +79,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
   </div>
 
-  <?php if (!empty($error)): ?>
+<?php if (!empty($error)): ?>
   <script>
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal Login!',
-      text: '<?= $error ?>',
-      confirmButtonColor: '#e11d48',
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Login!',
+        text: <?php echo json_encode($error); ?>,
+        confirmButtonColor: '#e11d48'
+      });
     });
   </script>
-  <?php endif; ?>
+<?php endif; ?>
+
+<?php if ($success): ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil Login!',
+        text: 'Selamat datang kembali Admin!',
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = 'dashboard.php';
+      });
+    });
+  </script>
+<?php endif; ?>
+
+
 
 </body>
 </html>
