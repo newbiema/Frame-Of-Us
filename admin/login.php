@@ -2,75 +2,92 @@
 session_start();
 include '../db.php';
 
-$error = ""; // Tambahkan variabel error awal
+$error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
-
-    // Menggunakan MD5 untuk meng-hash password yang dimasukkan
     $hashed_password = md5($password);
 
-    // Cek apakah username dan password cocok dengan data di database
     $result = $conn->query("SELECT * FROM admin WHERE username = '$username' AND password = '$hashed_password'");
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-
-        // Jika user ditemukan dan adalah admin
         if ($user['role'] == 'admin') {
             $_SESSION['login'] = true;
-            $_SESSION['role'] = 'admin'; // Simpan status sebagai admin
+            $_SESSION['role'] = 'admin';
             header("Location: dashboard.php");
             exit;
         }
     } else {
-        $error = "Username atau password salah."; // Simpan error
+        $error = "Username atau password salah.";
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- SweetAlert2 CDN -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+    .glass {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+<body class="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-purple-600 via-pink-500 to-red-400">
 
-<div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
-    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Login Admin</h2>
+  <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md transition-all duration-500 ease-in-out">
+    <div class="flex justify-center mb-4 animate-bounce">
+      <i class="fas fa-user-shield text-white text-4xl"></i>
+    </div>
 
-    <form method="POST" class="space-y-5">
-        <div>
-            <label class="block mb-1 text-sm font-medium text-gray-700">Username</label>
-            <input type="text" name="username" required
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-8">Login Admin</h2>
+
+    <form method="POST" class="space-y-6">
+      <div>
+        <label class="block text-sm text-white mb-1 font-semibold">Username</label>
+        <div class="flex items-center bg-white/80 rounded-xl px-3 py-2 border border-gray-300">
+          <i class="fas fa-user text-pink-500 mr-3"></i>
+          <input type="text" name="username" required class="w-full bg-transparent focus:outline-none text-sm sm:text-base" placeholder="Masukkan username">
         </div>
-        <div>
-            <label class="block mb-1 text-sm font-medium text-gray-700">Password</label>
-            <input type="password" name="password" required
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400">
+      </div>
+      <div>
+        <label class="block text-sm text-white mb-1 font-semibold">Password</label>
+        <div class="flex items-center bg-white/80 rounded-xl px-3 py-2 border border-gray-300">
+          <i class="fas fa-lock text-pink-500 mr-3"></i>
+          <input type="password" name="password" required class="w-full bg-transparent focus:outline-none text-sm sm:text-base" placeholder="Masukkan password">
         </div>
-        <button type="submit"
-            class="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 rounded-lg transition duration-300">
-            Login
-        </button>
+      </div>
+      <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+        <i class="fas fa-sign-in-alt mr-2"></i> Login
+      </button>
     </form>
-</div>
+  </div>
 
-<?php if (!empty($error)): ?>
-<script>
+  <?php if (!empty($error)): ?>
+  <script>
     Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: '<?= $error ?>',
+      icon: 'error',
+      title: 'Gagal Login!',
+      text: '<?= $error ?>',
+      confirmButtonColor: '#e11d48',
     });
-</script>
-<?php endif; ?>
+  </script>
+  <?php endif; ?>
 
 </body>
 </html>

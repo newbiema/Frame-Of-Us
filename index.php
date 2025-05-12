@@ -42,6 +42,8 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css">
+
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -228,23 +230,25 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 <!-- Kontrol Musik -->
 <div class="fixed bottom-6 right-6 z-50 group">
   <button id="toggleMusic" class="bg-transparent border-2 border-pink-400 hover:border-pink-600 text-pink-500 p-3 rounded-full shadow-lg backdrop-blur-md transition-transform transform hover:scale-110 active:scale-95 focus:outline-none relative">
-    <svg id="musicIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 fill-current" viewBox="0 0 24 24">
-      <path id="musicPath" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
-    </svg>
+    <!-- Font Awesome Icon -->
+    <i id="musicIcon" class="fas fa-play fa-lg"></i>
+    
+    <!-- Tooltip -->
     <span class="absolute -top-10 left-1/2 transform -translate-x-1/2 text-sm text-pink-700 opacity-0 group-hover:opacity-100 transition duration-300">Toggle Music</span>
   </button>
 </div>
 
-  <audio id="backgroundMusic" loop>
-    <source src="music/nothing.mp3" type="audio/mpeg">
-    Browser tidak mendukung audio.
-  </audio>
+<audio id="backgroundMusic" loop>
+  <source src="music/nothing.mp3" type="audio/mpeg">
+  Browser tidak mendukung audio.
+</audio>
+
 
 <!-- Footer -->
 <footer class="bg-pink-100 mt-16 py-8 text-center text-gray-500 text-sm border-t border-pink-300">
   <div class="max-w-4xl mx-auto space-y-8">
     
-    <p>&copy; 2025 <span class="font-semibold text-pink-500">Frames of Us</span></p>
+    <p>&copy; <?= date('Y') ?>  <span class="font-semibold text-pink-500">Frames of Us</span></p>
 
     <div class="flex justify-center gap-5 text-pink-400 text-xl">
       <a href="https://www.instagram.com/n4ve.666/" class="hover:text-pink-600 transition transform hover:scale-110">
@@ -254,7 +258,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
         <i class="fab fa-github"></i>
       </a>
     </div>
-
     <p class="flex items-center justify-center gap-1 text-gray-500 text-base">
       Made with <span class="text-pink-400 animate-pulse">❤️</span> by 
       <span class="font-semibold text-gray-700">Evan</span>.
@@ -275,24 +278,22 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   // Inisialisasi AOS
   AOS.init();
 
-  const music = document.getElementById('backgroundMusic');
-  const toggleBtn = document.getElementById('toggleMusic');
-  const musicIcon = document.getElementById('musicIcon');
-  const musicPath = document.getElementById('musicPath');
-  let isPlaying = false;
+  const toggleButton = document.getElementById("toggleMusic");
+  const music = document.getElementById("backgroundMusic");
+  const icon = document.getElementById("musicIcon");
 
-  toggleBtn.addEventListener('click', () => {
-    if (isPlaying) {
-      music.pause();
-      // Ganti ICON ke "mute"
-      musicPath.setAttribute('d', 'M16.5 12c0-1.77-.73-3.37-1.91-4.53L12 3v18l2.59-4.47C15.77 15.37 16.5 13.77 16.5 12z');
-    } else {
+  toggleButton.addEventListener("click", () => {
+    if (music.paused) {
       music.play();
-      // Ganti ICON ke "music note"
-      musicPath.setAttribute('d', 'M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z');
+      icon.classList.remove("fa-play");
+      icon.classList.add("fa-pause");
+    } else {
+      music.pause();
+      icon.classList.remove("fa-pause");
+      icon.classList.add("fa-play");
     }
-    isPlaying = !isPlaying;
   });
+
 
 
   // Modal untuk Foto
