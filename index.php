@@ -42,7 +42,9 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+
+
 
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -135,9 +137,10 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <h1 class="text-5xl md:text-6xl title-font text-pink-600 mb-4">
     Frames of Us
   </h1>
-  <p class="text-gray-600 title-font md:text-lg mb-8">
-    Discover our beautiful collection of unforgettable moments.
-  </p>
+<p class="text-gray-600 title-font md:text-lg mb-8">
+  <span id="typed-text"></span>
+</p>
+
   <a href="#gallery" class="inline-block bg-pink-500 hover:bg-pink-600 text-white text-sm md:text-base font-medium py-3 px-6 rounded-full shadow-lg transition-transform transform hover:scale-105">
     View Gallery
   </a>
@@ -172,35 +175,30 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-          echo "
-            <div class='group relative overflow-hidden rounded-3xl border border-indigo-200 bg-white shadow-md hover:shadow-2xl transition duration-300 gallery-item' data-aos='fade-up' onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}')\">
-              <img src='uploads/{$row['filename']}' alt='{$row['title']}' 
-                  class='w-full h-60 object-cover rounded-t-3xl group-hover:scale-105 transition-transform duration-300' />
-              <div class='p-5 text-center flex flex-col items-center space-y-4'>
+          echo "<div class='group relative overflow-hidden rounded-3xl border border-pink-200 bg-pink-50/60 shadow-[0_4px_20px_rgba(255,192,203,0.3)] hover:shadow-[0_6px_24px_rgba(255,105,180,0.4)] transition duration-300 gallery-item' data-aos='zoom-in-up' onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}')\">
 
-                <!-- Tombol Like -->
-                <button onclick=\"event.stopPropagation(); likePhoto({$row['id']})\"
-                        id=\"like-button-{$row['id']}\"
-                        class=\"flex items-center justify-center space-x-2 bg-pink-100 hover:bg-pink-200 text-pink-500 font-semibold py-2 px-4 rounded-full transition duration-300 active:scale-110 focus:outline-none\">
-                  <svg id=\"heart-icon-{$row['id']}\" xmlns=\"http://www.w3.org/2000/svg\" class=\"h-6 w-6 fill-current\" viewBox=\"0 0 24 24\">
-                    <path d=\"M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 
-                      6.5 3.5 5 5.5 5c1.54 0 3.04 1.04 3.57 2.36h1.87C13.46 
-                      6.04 14.96 5 16.5 5 18.5 5 20 6.5 20 8.5c0 3.78-3.4 
-                      6.86-8.55 11.54L12 21.35z\"/>
-                  </svg>
-                  <span id=\"likes-{$row['id']}\" class=\"text-lg\">{$row['likes']}</span>
-                </button>
+                  <!-- Gambar -->
+                  <img src='uploads/{$row['filename']}' alt='{$row['title']}'
+                      class='w-full h-60 object-cover rounded-t-3xl group-hover:scale-105 transition-transform duration-500 ease-in-out' />
 
-                <!-- Deskripsi Foto -->
+                  <!-- Konten -->
+                  <div class='p-5 text-center flex flex-col items-center space-y-4'>
 
-                <p class='flex items-center justify-center gap-2 bg-pink-50/80 text-pink-600 text-sm cute-font px-4 py-2 rounded-xl shadow-inner opacity-80 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out'>
+                    <!-- Tombol Like -->
+                    <button onclick='event.stopPropagation(); likePhoto({$row['id']})'
+                            id='like-button-{$row['id']}'
+                            class='flex items-center justify-center space-x-2 bg-pink-100 hover:bg-pink-200 text-pink-500 font-semibold py-2 px-4 rounded-full transition duration-300 active:scale-110 focus:outline-none shadow'>
+                      <i id='heart-icon-{$row['id']}' class='fas fa-heart text-pink-500 text-xl animate-pulse'></i>
+                      <span id='likes-{$row['id']}' class='text-lg'>{$row['likes']}</span>
+                    </button>
+
+                <!-- Deskripsi dengan icon lucu -->
+                <p class='flex items-center cute-font justify-center gap-2 bg-white/60 text-pink-600 text-sm font-poppins px-4 py-2 rounded-xl shadow-inner opacity-80 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out'>
                   {$row['description']}
                 </p>
-
-
-              </div>
-            </div>
-          ";
+                  </div>
+                </div>
+                ";
         }
     } else {
         echo "<p class='text-center col-span-full text-lg text-gray-500 italic'>Belum ada foto yang diunggah.</p>";
@@ -244,25 +242,52 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 </audio>
 
 
-<!-- Footer -->
-<footer class="bg-pink-100 mt-16 py-8 text-center text-gray-500 text-sm border-t border-pink-300">
-  <div class="max-w-4xl mx-auto space-y-8">
-    
-    <p>&copy; <?= date('Y') ?>  <span class="font-semibold text-pink-500">Frames of Us</span></p>
+<!-- Improved Footer with Clock -->
+<footer class="bg-gradient-to-br from-pink-300 title-font via-pink-400 to-pink-500 mt-20 text-white border-t border-pink-200">
+  <div class="max-w-6xl mx-auto px-6 py-14 space-y-10 text-center">
 
-    <div class="flex justify-center gap-5 text-pink-400 text-xl">
-      <a href="https://www.instagram.com/n4ve.666/" class="hover:text-pink-600 transition transform hover:scale-110">
+    <!-- Brand & Year -->
+    <p class="text-2xl font-bold tracking-wide">
+      &copy; <?= date('Y') ?> <span class="text-pink-100">Frames of Us</span>
+    </p>
+
+    <!-- Social Links -->
+    <div class="flex justify-center gap-10 text-3xl">
+      <a href="https://www.instagram.com/n4ve.666/" class="hover:text-pink-100 transition-transform transform hover:scale-125">
         <i class="fab fa-instagram"></i>
       </a>
-      <a href="https://github.com/newbiema" class="hover:text-pink-600 transition transform hover:scale-110">
+      <a href="https://github.com/newbiema" class="hover:text-pink-100 transition-transform transform hover:scale-125">
         <i class="fab fa-github"></i>
       </a>
     </div>
-    <p class="flex items-center justify-center gap-1 text-gray-500 text-base">
-      Made with <span class="text-pink-400 animate-pulse">❤️</span> by 
-      <span class="font-semibold text-gray-700">Evan</span>.
+
+    <!-- Clock -->
+    <div class="text-lg font-mono text-pink-100">
+      <span id="clock">00:00:00</span> WIB
+    </div>
+
+    <!-- Credit Line -->
+    <p class="text-base text-pink-100">
+      Made with 
+      <span class="inline-block animate-pulse text-pink-200 mx-1">❤️</span> 
+      by <span class="font-semibold text-white">Evan</span>.
     </p>
+
   </div>
+
+  <!-- Clock Script -->
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock(); // initial call
+  </script>
 </footer>
 
 
@@ -425,6 +450,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+
+<script>
+  var typed = new Typed('#typed-text', {
+    strings: [
+      "In every photo, there's a story of us that never fades.",
+      "Just You & Me",
+      "A Love Story in Pictures"
+    ],
+    typeSpeed: 50,
+    backSpeed: 25,
+    backDelay: 2000,
+    loop: true
+  });
+</script>
+
 
 <!-- Canvas untuk Confetti -->
 <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
