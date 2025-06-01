@@ -128,6 +128,33 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
       animation: ping-once 0.6s ease-in-out;
     }
 
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+  
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .like-button.liked {
+    background-color: #fce7f3;
+    color: #db2777;
+  }
+  
+  .like-button.processing {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  @keyframes heartBounce {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    75% { transform: scale(1.2); }
+  }
+
+  .like-animation {
+    animation: heartBounce 0.6s ease;
+  }
+
   </style>
 </head>
 <body class="bg-pink-50 text-gray-800">
@@ -166,47 +193,77 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 </header>
 
 
-<!-- Gallery -->
-<main id="gallery" class="max-w-7xl mx-auto px-6 py-12">
-  
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+<!-- Gallery Section -->
+<main id="gallery" class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+  <!-- Gallery Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     <?php
     $result = $conn->query("SELECT * FROM photos ORDER BY uploaded_at DESC");
-
+    
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-          echo "<div class='group relative overflow-hidden rounded-3xl border border-pink-200 bg-pink-50/60 shadow-[0_4px_20px_rgba(255,192,203,0.3)] hover:shadow-[0_6px_24px_rgba(255,105,180,0.4)] transition duration-300 gallery-item' data-aos='zoom-in-up' onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}')\">
+            $uploadDate = date('M j, Y', strtotime($row['uploaded_at']));
+            echo "
+            <div class='group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1'
+                 data-aos='zoom-in-up'
+                 onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}', {$row['id']}, '{$uploadDate}', {$row['likes']})\"
+                 role='button'
+                 aria-label='View photo details'>
+                 
+              <div class='relative overflow-hidden aspect-square'>
+                <img src='uploads/{$row['filename']}' alt='{$row['description']}'
+                    class='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
+                    loading='lazy' />
+                
+                <div class='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                
+                <div class='absolute top-3 right-3 bg-white/90 text-pink-500 px-2 py-1 rounded-full text-xs font-semibold flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-sm'>
+                  <i class='fas fa-expand mr-1'></i> View
+                </div>
+              </div>
 
-                  <!-- Gambar -->
-                  <img src='uploads/{$row['filename']}' alt='{$row['title']}'
-                      class='w-full h-60 object-cover rounded-t-3xl group-hover:scale-105 transition-transform duration-500 ease-in-out' />
-
-                  <!-- Konten -->
-                  <div class='p-5 text-center flex flex-col items-center space-y-4'>
-
-                    <!-- Tombol Like -->
+              <div class='p-4'>
+                <div class='flex justify-between items-center mb-3'>
                     <button onclick='event.stopPropagation(); likePhoto({$row['id']})'
                             id='like-button-{$row['id']}'
-                            class='flex items-center justify-center space-x-2 bg-pink-100 hover:bg-pink-200 text-pink-500 font-semibold py-2 px-4 rounded-full transition duration-300 active:scale-110 focus:outline-none shadow'>
-                      <i id='heart-icon-{$row['id']}' class='fas fa-heart text-pink-500 text-xl animate-pulse'></i>
-                      <span id='likes-{$row['id']}' class='text-lg'>{$row['likes']}</span>
-                    </button>
+                          class='like-button flex items-center space-x-1 bg-pink-50 hover:bg-pink-100 text-pink-600 font-medium py-1 px-3 rounded-full transition duration-200 active:scale-95 focus:outline-none'
+                          data-photo-id='{$row['id']}'
+                          aria-label='Like this photo'>
+                    <i class='far fa-heart'></i>
+                    <span class='likes-count text-sm' id='likes-{$row['id']}'>{$row['likes']}</span>
 
-                <!-- Deskripsi dengan icon lucu -->
-                <p class='flex items-center cute-font justify-center gap-2 bg-white/60 text-pink-600 text-sm font-poppins px-4 py-2 rounded-xl shadow-inner opacity-80 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out'>
+                  </button>
+
+                  <span class='text-xs text-gray-500 font-medium'>
+                    <i class='far fa-clock mr-1'></i>{$uploadDate}
+                  </span>
+                </div>
+
+                <p class='font-poppins text-gray-700 text-sm line-clamp-2 transition-colors duration-300 group-hover:text-gray-900'>
                   {$row['description']}
                 </p>
-                  </div>
-                </div>
-                ";
+              </div>
+            </div>";
         }
     } else {
-        echo "<p class='text-center col-span-full text-lg text-gray-500 italic'>Belum ada foto yang diunggah.</p>";
+        echo "
+        <div class='col-span-full text-center py-16' data-aos='fade-up'>
+          <div class='mx-auto w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mb-4 shadow-inner'>
+            <i class='fas fa-camera text-pink-500 text-3xl'></i>
+          </div>
+          <h3 class='text-xl font-medium text-gray-600 mb-2 font-poppins'>No Photos Yet</h3>
+          <p class='text-gray-500 max-w-md mx-auto font-poppins'>Be the first to share your memories! Upload a photo to get started.</p>
+        </div>";
     }
     ?>
   </div>
 </main>
 
+
+
+<style>
+
+</style>
 
   <!-- Modal untuk klik foto -->
   <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -242,36 +299,43 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 </audio>
 
 
-<!-- Improved Footer with Clock -->
-<footer class="bg-gradient-to-br from-pink-300 title-font via-pink-400 to-pink-500 mt-20 text-white border-t border-pink-200">
-  <div class="max-w-6xl mx-auto px-6 py-14 space-y-10 text-center">
+<footer class="title-font bg-gradient-to-br from-pink-300 via-pink-400 to-pink-500 text-white border-t border-pink-200">
+  <div class="max-w-6xl mx-auto px-6 py-12 space-y-8 text-center">
+    
+    <!-- Brand & Year (font tidak diubah) -->
+    <div>
+      <p class="text-2xl font-bold tracking-wide">
+        &copy; <?= date('Y') ?> <span class="text-pink-100">Frames of Us</span>
+      </p>
+    </div>
 
-    <!-- Brand & Year -->
-    <p class="text-2xl font-bold tracking-wide">
-      &copy; <?= date('Y') ?> <span class="text-pink-100">Frames of Us</span>
-    </p>
-
-    <!-- Social Links -->
-    <div class="flex justify-center gap-10 text-3xl">
-      <a href="https://www.instagram.com/n4ve.666/" class="hover:text-pink-100 transition-transform transform hover:scale-125">
-        <i class="fab fa-instagram"></i>
+    <!-- Social Links - lebih rapi -->
+    <div class="flex justify-center gap-6">
+      <a href="https://www.instagram.com/n4ve.666/" 
+         class="p-3 rounded-lg bg-pink-100/10 hover:bg-pink-100/20 transition-all duration-200">
+        <i class="fab fa-instagram text-2xl text-pink-100"></i>
       </a>
-      <a href="https://github.com/newbiema" class="hover:text-pink-100 transition-transform transform hover:scale-125">
-        <i class="fab fa-github"></i>
+      <a href="https://github.com/newbiema" 
+         class="p-3 rounded-lg bg-pink-100/10 hover:bg-pink-100/20 transition-all duration-200">
+        <i class="fab fa-github text-2xl text-pink-100"></i>
       </a>
     </div>
 
-    <!-- Clock -->
-    <div class="text-lg font-mono text-pink-100">
-      <span id="clock">00:00:00</span> WIB
+    <!-- Clock - lebih sederhana tapi elegan -->
+    <div class="py-2">
+      <div class="text-lg font-mono text-pink-100 inline-block px-4 py-2 rounded-lg bg-pink-100/10">
+        <span id="clock">00:00:00</span> WIB
+      </div>
     </div>
 
-    <!-- Credit Line -->
-    <p class="text-base text-pink-100">
-      Made with 
-      <span class="inline-block animate-pulse text-pink-200 mx-1">❤️</span> 
-      by <span class="font-semibold text-white">Evan</span>.
-    </p>
+    <!-- Credit Line - lebih minimalis -->
+    <div class="pt-6">
+      <p class="text-base text-pink-100">
+        Made with 
+        <span class="inline-block animate-pulse text-pink-200 mx-1">❤️</span> 
+        by <span class="font-semibold text-white">Evan</span>
+      </p>
+    </div>
 
   </div>
 
@@ -289,8 +353,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
     updateClock(); // initial call
   </script>
 </footer>
-
-
 
 <!-- AOS Library -->
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
@@ -450,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+
 
 <script>
   var typed = new Typed('#typed-text', {
