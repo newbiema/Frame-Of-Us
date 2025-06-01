@@ -239,7 +239,7 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
                   </span>
                 </div>
 
-                <p class='font-poppins text-gray-700 text-sm line-clamp-2 transition-colors duration-300 group-hover:text-gray-900'>
+                <p class='font-poppins text-center text-gray-700 text-sm line-clamp-2 transition-colors duration-300 group-hover:text-gray-900'>
                   {$row['description']}
                 </p>
               </div>
@@ -259,11 +259,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   </div>
 </main>
 
-
-
-<style>
-
-</style>
 
   <!-- Modal untuk klik foto -->
   <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
