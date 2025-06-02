@@ -45,9 +45,7 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
-
-
-
+  <script src="js/like.js "></script>
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -250,14 +248,62 @@ document.addEventListener('DOMContentLoaded', () => {
     animateValue("onlineVisitors", 0, <?php echo $onlineVisitors; ?>, 1500);
 });
 
+// Fungsi Like Foto
+  function likePhoto(photoId) {
+    if (localStorage.getItem('liked-' + photoId)) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Oops!',
+        text: 'Kamu sudah love foto ini! ❤️',
+        confirmButtonColor: '#ec4899',
+        confirmButtonText: 'Mengerti',
+      });
+      return;
+    }
+
+    const likeButton = document.getElementById('like-button-' + photoId);
+    likeButton.classList.add('scale-125');
+
+    fetch('../like.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'photo_id=' + photoId,
+    })
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('likes-' + photoId).textContent = data;
+
+      likeButton.classList.add('bg-pink-300', 'rounded-full', 'text-white', 'shadow-lg');
+      likeButton.innerHTML = '💖 ' + data;
+
+      localStorage.setItem('liked-' + photoId, true);
+
+      triggerConfetti();
+
+      setTimeout(() => {
+        likeButton.classList.remove('scale-125');
+      }, 300);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: 'Ada masalah saat memberikan like. Coba lagi nanti.',
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Tutup',
+      });
+    });
+  }
+
 </script>
-
-
-<script src="js/buttonmusic.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/counter.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/confetti.js"></script>
-<script src="js/counter.js"></script>
-<script src="js/modal.js"></script>
+<script src="js/buttonmusic.js"></script>
 <script src="js/typed.js"></script>
 
 <!-- Canvas untuk Confetti -->
