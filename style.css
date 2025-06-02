@@ -1,0 +1,102 @@
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .title-font {
+      font-family: 'Great Vibes', cursive;
+    }
+    .cute-font {
+      font-family: 'Comic Neue', 'Quicksand', cursive;
+    }
+    .gallery-item {
+      position: relative;
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+    }
+    .gallery-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Heart Spinner */
+    .heart {
+      width: 24px;
+      height: 24px;
+      background-color: pink;
+      transform: rotate(-45deg);
+      animation: heartbeat 1s infinite;
+      position: relative;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background-color: inherit;
+      border-radius: 50%;
+      position: absolute;
+    }
+    .heart::before {
+      top: -12px;
+      left: 0;
+    }
+    .heart::after {
+      left: 12px;
+      top: 0;
+    }
+    @keyframes heartbeat {
+      0%, 100% {
+        transform: scale(1) rotate(-45deg);
+      }
+      50% {
+        transform: scale(1.3) rotate(-45deg);
+      }
+    }
+    .animation-delay-200 {
+      animation-delay: 0.2s;
+    }
+    .animation-delay-400 {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes ping-once {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.75; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-ping-once {
+      animation: ping-once 0.6s ease-in-out;
+    }
+
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+  
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .like-button.liked {
+    background-color: #fce7f3;
+    color: #db2777;
+  }
+  
+  .like-button.processing {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  @keyframes heartBounce {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    75% { transform: scale(1.2); }
+  }
+
+  .like-animation {
+    animation: heartBounce 0.6s ease;
+  }

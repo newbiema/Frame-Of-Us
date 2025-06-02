@@ -43,6 +43,7 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
 
 
@@ -52,111 +53,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .title-font {
-      font-family: 'Great Vibes', cursive;
-    }
-    .cute-font {
-      font-family: 'Comic Neue', 'Quicksand', cursive;
-    }
-    .gallery-item {
-      position: relative;
-      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
-    }
-    .gallery-item:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    /* Heart Spinner */
-    .heart {
-      width: 24px;
-      height: 24px;
-      background-color: pink;
-      transform: rotate(-45deg);
-      animation: heartbeat 1s infinite;
-      position: relative;
-    }
-    .heart::before,
-    .heart::after {
-      content: "";
-      width: 24px;
-      height: 24px;
-      background-color: inherit;
-      border-radius: 50%;
-      position: absolute;
-    }
-    .heart::before {
-      top: -12px;
-      left: 0;
-    }
-    .heart::after {
-      left: 12px;
-      top: 0;
-    }
-    @keyframes heartbeat {
-      0%, 100% {
-        transform: scale(1) rotate(-45deg);
-      }
-      50% {
-        transform: scale(1.3) rotate(-45deg);
-      }
-    }
-    .animation-delay-200 {
-      animation-delay: 0.2s;
-    }
-    .animation-delay-400 {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes ping-once {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.75; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .animate-ping-once {
-      animation: ping-once 0.6s ease-in-out;
-    }
-
-      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-  
-  .font-poppins {
-    font-family: 'Poppins', sans-serif;
-  }
-  
-  .like-button.liked {
-    background-color: #fce7f3;
-    color: #db2777;
-  }
-  
-  .like-button.processing {
-    pointer-events: none;
-    opacity: 0.7;
-  }
-
-  @keyframes heartBounce {
-    0%, 100% { transform: scale(1); }
-    25% { transform: scale(1.3); }
-    50% { transform: scale(0.9); }
-    75% { transform: scale(1.2); }
-  }
-
-  .like-animation {
-    animation: heartBounce 0.6s ease;
-  }
-
-  </style>
 </head>
 <body class="bg-pink-50 text-gray-800">
 
@@ -335,19 +231,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
 
   </div>
 
-  <!-- Clock Script -->
-  <script>
-    function updateClock() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
-    }
-
-    setInterval(updateClock, 1000);
-    updateClock(); // initial call
-  </script>
 </footer>
 
 <!-- AOS Library -->
@@ -361,146 +244,6 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   // Inisialisasi AOS
   AOS.init();
 
-  const toggleButton = document.getElementById("toggleMusic");
-  const music = document.getElementById("backgroundMusic");
-  const icon = document.getElementById("musicIcon");
-
-  toggleButton.addEventListener("click", () => {
-    if (music.paused) {
-      music.play();
-      icon.classList.remove("fa-play");
-      icon.classList.add("fa-pause");
-    } else {
-      music.pause();
-      icon.classList.remove("fa-pause");
-      icon.classList.add("fa-play");
-    }
-  });
-
-
-
-  // Modal untuk Foto
-  function openModal(imageSrc, desc) {
-    const modal = document.getElementById('photoModal');
-    const modalImage = document.getElementById('modalImage');
-    const modalDesc = document.getElementById('modalDesc');
-    const modalLoading = document.getElementById('modalLoading');
-
-    modal.classList.remove('hidden');
-    modalLoading.style.display = 'flex';
-    modalImage.style.display = 'none';
-    modalDesc.style.display = 'none';
-
-    setTimeout(() => {
-      modalImage.src = imageSrc;
-      modalDesc.textContent = desc;
-
-      modalLoading.style.display = 'none';
-      modalImage.style.display = 'block';
-      modalDesc.style.display = 'block';
-
-      modalImage.classList.add('opacity-0');
-      modalDesc.classList.add('opacity-0');
-
-      setTimeout(() => {
-        modalImage.classList.remove('opacity-0');
-        modalImage.classList.add('transition-opacity', 'duration-700', 'opacity-100');
-
-        modalDesc.classList.remove('opacity-0');
-        modalDesc.classList.add('transition-opacity', 'duration-700', 'opacity-100');
-      }, 50);
-    }, 500);
-  }
-
-  function closeModal() {
-    const modal = document.getElementById('photoModal');
-    const modalLoading = document.getElementById('modalLoading');
-    const modalImage = document.getElementById('modalImage');
-    const modalDesc = document.getElementById('modalDesc');
-
-    modal.classList.add('hidden');
-    modalLoading.style.display = 'flex';
-    modalImage.style.display = 'none';
-    modalDesc.style.display = 'none';
-    modalImage.src = '';
-  }
-
-  // Fungsi Like Foto
-  function likePhoto(photoId) {
-    if (localStorage.getItem('liked-' + photoId)) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Oops!',
-        text: 'Kamu sudah love foto ini! ❤️',
-        confirmButtonColor: '#ec4899',
-        confirmButtonText: 'Mengerti',
-      });
-      return;
-    }
-
-    const likeButton = document.getElementById('like-button-' + photoId);
-    likeButton.classList.add('scale-125');
-
-    fetch('like.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'photo_id=' + photoId,
-    })
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('likes-' + photoId).textContent = data;
-
-      likeButton.classList.add('bg-pink-300', 'rounded-full', 'text-white', 'shadow-lg');
-      likeButton.innerHTML = '💖 ' + data;
-
-      localStorage.setItem('liked-' + photoId, true);
-
-      triggerConfetti();
-
-      setTimeout(() => {
-        likeButton.classList.remove('scale-125');
-      }, 300);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: 'Ada masalah saat memberikan like. Coba lagi nanti.',
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Tutup',
-      });
-    });
-  }
-
-  // Trigger Confetti
-  function triggerConfetti() {
-    const confettiSettings = { target: 'confetti-canvas', max: 80, size: 1.2, animate: true };
-    const confetti = new ConfettiGenerator(confettiSettings);
-    confetti.render();
-    
-    setTimeout(() => confetti.clear(), 2000);
-  }
-
-
-
-  // Fungsi animasi counter
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerText = Math.floor(progress * (end - start) + start);
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
 // Jalankan animasi pas load
 document.addEventListener('DOMContentLoaded', () => {
     animateValue("totalVisitors", 0, <?php echo $totalVisitors; ?>, 2000);
@@ -510,20 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<script>
-  var typed = new Typed('#typed-text', {
-    strings: [
-      "In every photo, there's a story of us that never fades.",
-      "Just You & Me",
-      "A Love Story in Pictures"
-    ],
-    typeSpeed: 50,
-    backSpeed: 25,
-    backDelay: 2000,
-    loop: true
-  });
-</script>
-
+<script src="js/buttonmusic.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/confetti.js"></script>
+<script src="js/counter.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/typed.js"></script>
 
 <!-- Canvas untuk Confetti -->
 <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
