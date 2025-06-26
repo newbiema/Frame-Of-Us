@@ -1,7 +1,6 @@
 <?php
- include 'db.php'; 
+include 'db.php'; 
  
-// Ambil IP Address pengunjung
 function getUserIP() {
   if (!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
   if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -11,87 +10,266 @@ function getUserIP() {
 $ip = getUserIP();
 $now = date('Y-m-d H:i:s');
 
-// Cek apakah IP sudah ada
 $check = $conn->query("SELECT * FROM visitors WHERE ip_address = '$ip'");
 
 if ($check->num_rows > 0) {
-  // Update waktu kunjungan terakhir
   $conn->query("UPDATE visitors SET last_visit = '$now' WHERE ip_address = '$ip'");
 } else {
-  // Masukkan pengunjung baru
   $conn->query("INSERT INTO visitors (ip_address, last_visit) VALUES ('$ip', '$now')");
 }
 
-// Hitung total visitor (unique IP)
 $totalVisitorsResult = $conn->query("SELECT COUNT(*) AS total FROM visitors");
 $totalVisitors = $totalVisitorsResult->fetch_assoc()['total'];
 
-// Hitung visitor online (yang aktif dalam 5 menit terakhir)
 $timeLimit = date('Y-m-d H:i:s', strtotime('-5 minutes'));
 $onlineVisitorsResult = $conn->query("SELECT COUNT(*) AS online FROM visitors WHERE last_visit >= '$timeLimit'");
 $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
-
- ?>
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Frames of Us</title>
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <title>Frame Of Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Short+Stack&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
-  <script src="js/like.js "></script>
-  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <style>
+    /* Cute Pixel Art Styling */
+    :root {
+      --pink: #ff9bb3;
+      --purple: #b5a1ff;
+      --blue: #9bd4ff;
+      --yellow: #ffe08a;
+    }
+    
+    body {
+      background-color: #fff5f7;
+      font-family: 'Short Stack', cursive;
+      image-rendering: pixelated;
+    }
+    
+    .pixel-border {
+      border: 4px solid #000;
+      box-shadow: 8px 8px 0 rgba(0,0,0,0.2);
+      position: relative;
+    }
+    
+    .pixel-border:before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      right: 2px;
+      bottom: 2px;
+      border: 2px solid white;
+      pointer-events: none;
+    }
+    
+    .cute-btn {
+      background: var(--pink);
+      color: white;
+      border: 3px solid #000;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+      transition: all 0.1s;
+      font-family: 'Press Start 2P', cursive;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+    }
+    
+    .cute-btn:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+    }
+    
+    .cute-btn:active {
+      transform: translate(4px, 4px);
+      box-shadow: none;
+    }
+    
+    .pixel-card {
+      background: white;
+      border: 4px solid #000;
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+    
+    .pixel-card:hover {
+      transform: translate(-4px, -4px);
+      box-shadow: 10px 10px 0 rgba(0,0,0,0.1);
+    }
+    
+    .title-font {
+      font-family: 'Press Start 2P', cursive;
+      text-shadow: 3px 3px 0 var(--purple);
+    }
+    
+    .pixel-loader {
+      width: 16px;
+      height: 16px;
+      background-color: var(--pink);
+      display: inline-block;
+      animation: pixel-bounce 0.6s infinite ease-in-out;
+    }
+    
+    @keyframes pixel-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); background-color: var(--purple); }
+    }
+    
+    .like-btn {
+      background: white;
+      border: 2px solid #000;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    
+    .like-btn:hover {
+      background: var(--pink);
+      color: white;
+    }
+    
+    .like-btn.liked {
+      background: var(--pink);
+      color: white;
+      animation: heartBeat 0.5s;
+    }
+    
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.2); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .pixel-divider {
+      height: 4px;
+      background: repeating-linear-gradient(
+        to right,
+        var(--pink),
+        var(--pink) 10px,
+        var(--purple) 10px,
+        var(--purple) 20px
+      );
+      margin: 1rem 0;
+      border: 2px solid #000;
+    }
+    
+    .music-btn {
+      width: 60px;
+      height: 60px;
+      background: var(--purple);
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    
+    .music-btn:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
+    .floating {
+      animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .pixel-cloud {
+      position: absolute;
+      background: white;
+      border: 3px solid #000;
+      border-radius: 50%;
+    }
+    
+    .pixel-star {
+      position: absolute;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+      animation: twinkle 2s infinite alternate;
+    }
+    
+    @keyframes twinkle {
+      from { opacity: 0.6; transform: scale(1); }
+      to { opacity: 1; transform: scale(1.2); }
+    }
+  </style>
 </head>
-<body class="bg-pink-50 text-gray-800">
+<body class="overflow-x-hidden">
+
+<!-- Decorative elements -->
+<div class="pixel-cloud" style="width: 80px; height: 40px; top: 10%; left: 5%;"></div>
+<div class="pixel-cloud" style="width: 60px; height: 30px; top: 15%; right: 10%;"></div>
+<div class="pixel-star" style="top: 20%; left: 15%;">✦</div>
+<div class="pixel-star" style="top: 25%; right: 20%;">✦</div>
 
 <!-- Header -->
-<header class="text-center py-12 bg-gradient-to-r from-pink-200 to-pink-400">
-  <h1 class="text-5xl md:text-6xl title-font text-pink-600 mb-4">
-    Frames of Us
-  </h1>
-<p class="text-gray-600 title-font md:text-lg mb-8">
-  <span id="typed-text"></span>
-</p>
+<header class="text-center py-16 relative" style="background: linear-gradient(to bottom right, var(--pink), var(--purple));">
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="pixel-star floating" style="top: 30%; left: 20%; font-size: 24px;">✧</div>
+    <div class="pixel-star floating" style="top: 40%; right: 25%; font-size: 24px;">✧</div>
+    <div class="pixel-star floating" style="animation-delay: 0.5s; top: 70%; left: 15%; font-size: 18px;">✦</div>
+  </div>
+  
+  <div class="relative z-10">
+    <h1 class="text-5xl md:text-6xl title-font text-white mb-6">
+      Frame Of Us
+    </h1>
+    
+    <div class="pixel-divider w-1/3 mx-auto"></div>
+    
+    <p class="text-white text-xl md:text-2xl mb-8">
+      <span id="typed-text"></span>
+    </p>
 
-  <a href="#gallery" class="inline-block bg-pink-500 hover:bg-pink-600 text-white text-sm md:text-base font-medium py-3 px-6 rounded-full shadow-lg transition-transform transform hover:scale-105">
-    View Gallery
-  </a>
+    <button class="cute-btn mx-auto">
+      EXPLORE GALLERY
+    </button>
 
-  <!-- Visitors Section -->
-  <div class="flex flex-col items-center mt-8">
-    <div class="flex flex-wrap gap-6 justify-center items-center bg-white/50 backdrop-blur-md shadow-md rounded-xl px-6 py-4 w-fit text-sm text-gray-600 font-medium">
-      
-      <div class="flex items-center gap-2">
-        <i class="fas fa-user text-pink-400"></i>
-        <span>Total Visitors:</span>
-        <span id="totalVisitors" class="text-pink-500 font-bold"><?php echo $totalVisitors; ?></span>
+    <!-- Visitors Section -->
+    <div class="flex flex-col items-center mt-12">
+      <div class="pixel-border bg-white px-6 py-4 w-fit text-lg">
+        <div class="flex flex-wrap gap-8 justify-center items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-var(--pink) border-2 border-black flex items-center justify-center">
+              <i class="fas fa-users text-black"></i>
+            </div>
+            <span>Visitors:</span>
+            <span id="totalVisitors" class="font-bold text-pink-600"><?php echo $totalVisitors; ?></span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-var(--blue) border-2 border-black flex items-center justify-center">
+              <i class="fas fa-signal text-black"></i>
+            </div>
+            <span>Online:</span>
+            <span id="onlineVisitors" class="font-bold text-blue-600"><?php echo $onlineVisitors; ?></span>
+          </div>
+        </div>
       </div>
-
-      <div class="flex items-center gap-2">
-        <i class="fas fa-signal text-pink-400"></i>
-        <span>Online Now:</span>
-        <span id="onlineVisitors" class="text-pink-500 font-bold"><?php echo $onlineVisitors; ?></span>
-      </div>
-
     </div>
   </div>
 </header>
 
-
 <!-- Gallery Section -->
-<main id="gallery" class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-  <!-- Gallery Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+<main id="gallery" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 relative">
+  <!-- Decorative elements -->
+  <div class="pixel-star" style="top: 50px; right: 5%;">✧</div>
+  <div class="pixel-star" style="bottom: 100px; left: 8%;">✦</div>
+  
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
     <?php
     $result = $conn->query("SELECT * FROM photos ORDER BY uploaded_at DESC");
     
@@ -99,21 +277,19 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
         while ($row = $result->fetch_assoc()) {
             $uploadDate = date('M j, Y', strtotime($row['uploaded_at']));
             echo "
-            <div class='group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1'
+            <div class='pixel-card group relative'
                  data-aos='zoom-in-up'
-                 onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}', {$row['id']}, '{$uploadDate}', {$row['likes']})\"
-                 role='button'
-                 aria-label='View photo details'>
+                 onclick=\"openModal('uploads/{$row['filename']}', '{$row['description']}', {$row['id']}, '{$uploadDate}', {$row['likes']})\">
                  
-              <div class='relative overflow-hidden aspect-square'>
+              <div class='relative overflow-hidden aspect-square border-b-2 border-black'>
                 <img src='uploads/{$row['filename']}' alt='{$row['description']}'
-                    class='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
+                    class='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110'
                     loading='lazy' />
                 
-                <div class='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                <div class='absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
                 
-                <div class='absolute top-3 right-3 bg-white/90 text-pink-500 px-2 py-1 rounded-full text-xs font-semibold flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-sm'>
-                  <i class='fas fa-expand mr-1'></i> View
+                <div class='absolute top-3 right-3 bg-white border-2 border-black px-2 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                  <i class='fas fa-expand mr-1'></i> VIEW
                 </div>
               </div>
 
@@ -121,20 +297,18 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
                 <div class='flex justify-between items-center mb-3'>
                     <button onclick='event.stopPropagation(); likePhoto({$row['id']})'
                             id='like-button-{$row['id']}'
-                          class='like-button flex items-center space-x-1 bg-pink-50 hover:bg-pink-100 text-pink-600 font-medium py-1 px-3 rounded-full transition duration-200 active:scale-95 focus:outline-none'
-                          data-photo-id='{$row['id']}'
-                          aria-label='Like this photo'>
-                    <i class='far fa-heart'></i>
-                    <span class='likes-count text-sm' id='likes-{$row['id']}'>{$row['likes']}</span>
-
+                          class='like-btn flex items-center space-x-1'
+                          data-photo-id='{$row['id']}'>
+                    <i class='fas fa-heart mr-1'></i>
+                    <span class='likes-count' id='likes-{$row['id']}'>{$row['likes']}</span>
                   </button>
 
-                  <span class='text-xs text-gray-500 font-medium'>
+                  <span class='text-xs text-gray-600'>
                     <i class='far fa-clock mr-1'></i>{$uploadDate}
                   </span>
                 </div>
 
-                <p class='font-poppins text-center text-gray-700 text-sm line-clamp-2 transition-colors duration-300 group-hover:text-gray-900'>
+                <p class='text-center text-gray-800 text-sm line-clamp-2'>
                   {$row['description']}
                 </p>
               </div>
@@ -142,129 +316,124 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
         }
     } else {
         echo "
-        <div class='col-span-full text-center py-16' data-aos='fade-up'>
-          <div class='mx-auto w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mb-4 shadow-inner'>
+        <div class='col-span-full text-center py-16 pixel-card' data-aos='fade-up'>
+          <div class='mx-auto w-24 h-24 bg-pink-100 border-2 border-black rounded-full flex items-center justify-center mb-4'>
             <i class='fas fa-camera text-pink-500 text-3xl'></i>
           </div>
-          <h3 class='text-xl font-medium text-gray-600 mb-2 font-poppins'>No Photos Yet</h3>
-          <p class='text-gray-500 max-w-md mx-auto font-poppins'>Be the first to share your memories! Upload a photo to get started.</p>
+          <h3 class='text-xl font-bold mb-2'>NO PHOTOS YET</h3>
+          <p class='text-gray-600 max-w-md mx-auto'>Share your first memory to start the gallery!</p>
         </div>";
     }
     ?>
   </div>
 </main>
 
+<!-- Modal -->
+<div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+  <div class="pixel-border bg-white max-w-md w-full mx-auto p-6 relative">
+    <button onclick="closeModal()" class="absolute top-2 right-2 text-black hover:text-pink-500 text-2xl">&times;</button>
 
-  <!-- Modal untuk klik foto -->
-  <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl overflow-hidden max-w-md mx-auto p-6 relative">
-      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
+    <div id="modalLoading" class="flex items-center justify-center h-60 space-x-2">
+      <div class="pixel-loader"></div>
+      <div class="pixel-loader" style="animation-delay: 0.2s"></div>
+      <div class="pixel-loader" style="animation-delay: 0.4s"></div>
+    </div>
 
-      <div id="modalLoading" class="flex items-center justify-center h-60 space-x-2">
-        <div class="heart bg-pink-500"></div>
-        <div class="heart bg-pink-400 animation-delay-200"></div>
-        <div class="heart bg-pink-300 animation-delay-400"></div>
+    <img id="modalImage" src="" class="w-full rounded mb-4 hidden">
+    <p id="modalDesc" class="text-center text-pink-600 font-bold hidden"></p>
+    <div class="flex justify-between items-center mt-4 text-sm">
+      <span id="modalDate" class="text-gray-600"></span>
+      <div class="flex items-center">
+        <i class="fas fa-heart text-pink-500 mr-1"></i>
+        <span id="modalLikes" class="font-bold"></span>
       </div>
-
-      <img id="modalImage" src="" class="w-full rounded-lg mb-4 hidden opacity-0">
-      <p id="modalDesc" class="text-center cute-font text-pink-500 hidden opacity-0"></p>
-
     </div>
   </div>
+</div>
 
-<!-- Kontrol Musik -->
-<div class="fixed bottom-6 right-6 z-50 group">
-  <button id="toggleMusic" class="bg-transparent border-2 border-pink-400 hover:border-pink-600 text-pink-500 p-3 rounded-full shadow-lg backdrop-blur-md transition-transform transform hover:scale-110 active:scale-95 focus:outline-none relative">
-    <!-- Font Awesome Icon -->
-    <i id="musicIcon" class="fas fa-play fa-lg"></i>
-    
-    <!-- Tooltip -->
-    <span class="absolute -top-10 left-1/2 transform -translate-x-1/2 text-sm text-pink-700 opacity-0 group-hover:opacity-100 transition duration-300">Toggle Music</span>
+<!-- Music Player -->
+<div class="fixed bottom-6 right-6 z-50">
+  <button id="toggleMusic" class="music-btn flex items-center justify-center">
+    <i id="musicIcon" class="fas fa-play text-white text-xl"></i>
   </button>
 </div>
 
 <audio id="backgroundMusic" loop>
   <source src="music/nothing.mp3" type="audio/mpeg">
-  Browser tidak mendukung audio.
 </audio>
 
+<!-- Footer -->
+<footer class="bg-pink-100 border-t-4 border-black py-12">
+  <div class="max-w-6xl mx-auto px-6 space-y-8 text-center">
 
-<footer class="title-font bg-gradient-to-br from-pink-300 via-pink-400 to-pink-500 text-white border-t border-pink-200">
-  <div class="max-w-6xl mx-auto px-6 py-12 space-y-8 text-center">
-    
-    <!-- Brand & Year (font tidak diubah) -->
-    <div>
-      <p class="text-2xl font-bold tracking-wide">
-        &copy; <?= date('Y') ?> <span class="text-pink-100">Frames of Us</span>
-      </p>
-    </div>
-
-    <!-- Social Links - lebih rapi -->
     <div class="flex justify-center gap-6">
       <a href="https://www.instagram.com/n4ve.666/" 
-         class="p-3 rounded-lg bg-pink-100/10 hover:bg-pink-100/20 transition-all duration-200">
-        <i class="fab fa-instagram text-2xl text-pink-100"></i>
+         class="w-10 h-10 bg-white border-2 border-black flex items-center justify-center hover:bg-pink-200 transition-colors">
+        <i class="fab fa-instagram text-black"></i>
       </a>
       <a href="https://github.com/newbiema" 
-         class="p-3 rounded-lg bg-pink-100/10 hover:bg-pink-100/20 transition-all duration-200">
-        <i class="fab fa-github text-2xl text-pink-100"></i>
+         class="w-10 h-10 bg-white border-2 border-black flex items-center justify-center hover:bg-pink-200 transition-colors">
+        <i class="fab fa-github text-black"></i>
       </a>
     </div>
 
-    <!-- Clock - lebih sederhana tapi elegan -->
     <div class="py-2">
-      <div class="text-lg font-mono text-pink-100 inline-block px-4 py-2 rounded-lg bg-pink-100/10">
+      <div class="text-lg inline-block px-4 py-2 bg-white border-2 border-black">
         <span id="clock">00:00:00</span> WIB
       </div>
     </div>
 
-    <!-- Credit Line - lebih minimalis -->
     <div class="pt-6">
-      <p class="text-base text-pink-100">
-        Made with 
-        <span class="inline-block animate-pulse text-pink-200 mx-1">❤️</span> 
-        by <span class="font-semibold text-white">Evan</span>
+      <p class="text-gray-700">
+        Made with <i class="fas fa-heart text-pink-500 mx-1"></i> 
+        by <span class="font-bold">Evan</span>
       </p>
     </div>
 
   </div>
-
 </footer>
 
-<!-- AOS Library -->
-<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-
-<!-- Confetti JS Library -->
-<script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
-
-<!-- Custom Script -->
 <script>
-  // Inisialisasi AOS
-  AOS.init();
+  // Initialize AOS
+  AOS.init({
+    duration: 800,
+    easing: 'ease-out-back'
+  });
 
-// Jalankan animasi pas load
-document.addEventListener('DOMContentLoaded', () => {
-    animateValue("totalVisitors", 0, <?php echo $totalVisitors; ?>, 2000);
-    animateValue("onlineVisitors", 0, <?php echo $onlineVisitors; ?>, 1500);
-});
+  // Typed.js initialization
+  new Typed('#typed-text', {
+    strings: ["Cute Pixel Memories", "Adorable Moments", "Share Your Pixie Life"],
+    typeSpeed: 60,
+    backSpeed: 30,
+    loop: true,
+    cursorChar: '▋',
+    showCursor: true
+  });
 
-// Fungsi Like Foto
+  // Animate visitor counters
+  document.addEventListener('DOMContentLoaded', () => {
+      animateValue("totalVisitors", 0, <?php echo $totalVisitors; ?>, 1500);
+      animateValue("onlineVisitors", 0, <?php echo $onlineVisitors; ?>, 1000);
+  });
+
+  // Like function with cute animation
   function likePhoto(photoId) {
     if (localStorage.getItem('liked-' + photoId)) {
       Swal.fire({
-        icon: 'info',
         title: 'Oops!',
-        text: 'Kamu sudah love foto ini! ❤️',
-        confirmButtonColor: '#ec4899',
-        confirmButtonText: 'Mengerti',
+        text: 'You already liked this photo!',
+        icon: 'info',
+        confirmButtonText: 'OK',
+        background: '#fff',
+        confirmButtonColor: '#ff9bb3',
       });
       return;
     }
 
     const likeButton = document.getElementById('like-button-' + photoId);
-    likeButton.classList.add('scale-125');
+    likeButton.classList.add('liked');
 
-    fetch('../like.php', {
+    fetch('like.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -274,40 +443,61 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => response.text())
     .then(data => {
       document.getElementById('likes-' + photoId).textContent = data;
-
-      likeButton.classList.add('bg-pink-300', 'rounded-full', 'text-white', 'shadow-lg');
-      likeButton.innerHTML = '💖 ' + data;
-
       localStorage.setItem('liked-' + photoId, true);
-
       triggerConfetti();
-
-      setTimeout(() => {
-        likeButton.classList.remove('scale-125');
-      }, 300);
     })
     .catch(error => {
       console.error('Error:', error);
       Swal.fire({
+        title: 'Error!',
+        text: 'Failed to send like',
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Ada masalah saat memberikan like. Coba lagi nanti.',
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Tutup',
+        confirmButtonText: 'OK',
+        background: '#fff',
+        confirmButtonColor: '#ff9bb3',
       });
     });
   }
 
+  // Modal functions
+  function openModal(src, desc, id, date, likes) {
+    const modal = document.getElementById('photoModal');
+    const modalImg = document.getElementById('modalImage');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalLoading = document.getElementById('modalLoading');
+    const modalDate = document.getElementById('modalDate');
+    const modalLikes = document.getElementById('modalLikes');
+    
+    modal.style.display = 'flex';
+    modalLoading.style.display = 'flex';
+    modalImg.style.display = 'none';
+    modalDesc.style.display = 'none';
+    
+    modalImg.onload = function() {
+      modalLoading.style.display = 'none';
+      modalImg.style.display = 'block';
+      modalDesc.style.display = 'block';
+      modalDesc.textContent = desc;
+      modalDate.textContent = date;
+      modalLikes.textContent = likes;
+    };
+    
+    modalImg.src = src;
+  }
+  
+  function closeModal() {
+    document.getElementById('photoModal').style.display = 'none';
+  }
 </script>
-<script src="js/modal.js"></script>
+
 <script src="js/counter.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/confetti.js"></script>
 <script src="js/buttonmusic.js"></script>
-<script src="js/typed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
 
-<!-- Canvas untuk Confetti -->
-<canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-40"></canvas>
 
 </body>
 </html>
