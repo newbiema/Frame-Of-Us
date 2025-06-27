@@ -42,6 +42,7 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
   <style>
     /* Cute Pixel Art Styling */
     :root {
+    scroll-behavior: smooth;
       --pink: #ff9bb3;
       --purple: #b5a1ff;
       --blue: #9bd4ff;
@@ -235,7 +236,7 @@ $onlineVisitors = $onlineVisitorsResult->fetch_assoc()['online'];
     </p>
 
     <button class="cute-btn mx-auto">
-      EXPLORE GALLERY
+      <a href="#gallery">EXPLORE GALLERY</a>
     </button>
 
     <!-- Visitors Section -->
