@@ -47,7 +47,7 @@ if ($stmt = $conn->prepare('SELECT COUNT(*) AS online FROM visitors WHERE visite
 
 // ---------- Albums + Photos ----------
 $albums = [];
-if ($res = $conn->query("SELECT id, title, description, created_at FROM albums ORDER BY created_at DESC")) {
+if ($res = $conn->query("SELECT id, title, description, created_at, likes FROM albums ORDER BY created_at DESC")) {
   while ($a = $res->fetch_assoc()) { $a['photos'] = []; $albums[(int)$a['id']] = $a; }
   $res->free();
 }
@@ -94,6 +94,7 @@ if ($albums) {
     }
     .cute-btn:hover { transform:translate(2px,2px); box-shadow:3px 3px 0 rgba(0,0,0,.2); }
     .title-font { font-family:'Press Start 2P',cursive; text-shadow:3px 3px 0 #fff; color:#000; }
+
     /* Swiper controls in pixel style */
     .swiper { --swiper-theme-color:#000; }
     .swiper-button-next, .swiper-button-prev {
@@ -102,13 +103,16 @@ if ($albums) {
     .swiper-button-next:after, .swiper-button-prev:after { font-size:14px; color:#000; }
     .swiper-pagination-bullet { background:#000; opacity:.25; }
     .swiper-pagination-bullet-active { background:#000; opacity:1; }
+
     /* Image hover */
     .card-img { transition: transform .5s ease; }
     .memory-card:hover .card-img { transform: scale(1.04); }
+
     /* Top meta bar on cards */
     .card-topbar{
       position:absolute; inset:10px 10px auto 10px;
       display:flex; align-items:center; gap:8px; flex-wrap:wrap; z-index:5;
+      pointer-events: auto;
     }
     .card-chip{
       background:#fff; border:2px solid #000; border-radius:8px;
@@ -119,12 +123,15 @@ if ($albums) {
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       font-weight: 700;
     }
+
     /* Two-line clamp for description */
     .line-clamp-2{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+
     /* Decorations */
     .pixel-cloud { position:absolute; background:#fff; border:3px solid #000; border-radius:50%; }
     .pixel-star { position:absolute; color:var(--yellow); text-shadow:2px 2px 0 rgba(0,0,0,.2); animation: twinkle 2s infinite alternate; }
     @keyframes twinkle { from{opacity:.6; transform:scale(1);} to{opacity:1; transform:scale(1.2);} }
+
     /* Footer chip clock */
     .chip {
       display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:3px solid #000; background:#fff;
@@ -187,9 +194,10 @@ if ($albums) {
 
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
     <?php if ($albums): foreach ($albums as $album): $aid=(int)$album['id']; $photos=$album['photos']; if(!$photos) continue; ?>
-      <a href="post.php?id=<?= $aid ?>" class="block memory-card pixel-card group relative overflow-hidden" data-aos="fade-up" aria-label="Open album">
+      <!-- Tambahkan class album-link untuk penyimpanan state musik -->
+      <a href="post.php?id=<?= $aid ?>" class="album-link block memory-card pixel-card group relative overflow-hidden" data-aos="fade-up" aria-label="Open album">
         <div class="relative overflow-hidden">
-          <!-- TOP META BAR (title, date, photo count) -->
+          <!-- TOP META BAR (title, date, photo count, like) -->
           <div class="card-topbar">
             <span class="card-chip card-title">
               <?= htmlspecialchars($album['title'] ?: 'Untitled', ENT_QUOTES, 'UTF-8') ?>
@@ -199,6 +207,15 @@ if ($albums) {
             </span>
             <span class="card-chip">
               <i class="fa-regular fa-image mr-1"></i><?= count($photos) ?> photos
+            </span>
+            <span class="card-chip" style="display:flex;align-items:center;gap:6px;">
+              <button type="button"
+                      class="link-plain"
+                      style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:none;cursor:pointer;font-weight:700;"
+                      onclick="likeAlbum(<?= $aid ?>, event)">
+                <i class="fa-regular fa-heart"></i>
+                <span id="likes-<?= $aid ?>"><?= (int)($album['likes'] ?? 0) ?></span>
+              </button>
             </span>
           </div>
 
@@ -291,7 +308,7 @@ if ($albums) {
     animateValue('totalVisitors', 0, <?php echo (int)$totalVisitors; ?>, 1500);
     animateValue('onlineVisitors', 0, <?php echo (int)$onlineVisitors; ?>, 1000);
 
-    // Inisialisasi tiap Swiper berdasarkan element langsung
+    // Init setiap Swiper pakai element langsung (akurasi selector)
     document.querySelectorAll('[class*="main-swiper-"]').forEach((mainEl) => {
       const slides = mainEl.querySelectorAll('.swiper-slide').length;
       const paginationEl = mainEl.querySelector('.swiper-pagination');
@@ -308,12 +325,101 @@ if ($albums) {
     });
   });
 
-  // Music & clock
+  // ---------- LIKE: cegah pindah halaman ----------
+  function likeAlbum(aid, ev){
+    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+
+    const key = 'liked-album-' + aid;
+    if (localStorage.getItem(key)) {
+      Swal.fire({
+        title: 'Already liked',
+        text: 'Kamu sudah mengapresiasi album ini.',
+        icon: 'info',
+        confirmButtonText: 'OK',
+        background: '#fff'
+      });
+      return;
+    }
+
+    fetch('like_album.php', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: 'album_id=' + encodeURIComponent(aid)
+    })
+    .then(r => r.text())
+    .then(txt => {
+      const el = document.getElementById('likes-' + aid);
+      if (el) el.textContent = txt || '0';
+      localStorage.setItem(key, '1');
+      el?.animate([{transform:'scale(1)'},{transform:'scale(1.25)'},{transform:'scale(1)'}], {duration:300});
+    })
+    .catch(() => {
+      Swal.fire({title:'Oops',text:'Gagal menyimpan like.',icon:'error',background:'#fff'});
+    });
+  }
+
+  // ---------- Music toggle ----------
   const music=document.getElementById('backgroundMusic');
   const musicBtn=document.getElementById('toggleMusic');
   const musicIcon=document.getElementById('musicIcon');
-  musicBtn.addEventListener('click',()=>{ if(music.paused){ music.play(); musicIcon.className='fas fa-pause'; } else { music.pause(); musicIcon.className='fas fa-play'; } });
+  musicBtn.addEventListener('click',()=>{ 
+    if(music.paused){ 
+      music.play().then(()=>{ musicIcon.className='fas fa-pause'; });
+    } else { 
+      music.pause(); musicIcon.className='fas fa-play'; 
+    } 
+  });
 
+  // ---------- Simpan state music sebelum navigasi ----------
+  (function attachAlbumLinkHandler(){
+    const musicEl = document.getElementById('backgroundMusic');
+    document.querySelectorAll('a.album-link').forEach(a => {
+      a.addEventListener('click', () => {
+        try {
+          const state = {
+            t: musicEl?.currentTime || 0,
+            playing: !!(musicEl && !musicEl.paused)
+          };
+          sessionStorage.setItem('kept_music_state', JSON.stringify(state));
+        } catch(e){}
+      }, {capture:true});
+    });
+  })();
+
+  // ---------- Restore music state saat halaman dimuat ----------
+  (function restoreMusicOnLoad(){
+    const musicEl = document.getElementById('backgroundMusic');
+    const icon  = document.getElementById('musicIcon');
+    if (!musicEl) return;
+
+    try {
+      const raw = sessionStorage.getItem('kept_music_state');
+      if (!raw) return;
+      const state = JSON.parse(raw || '{}');
+      if (typeof state.t === 'number') {
+        musicEl.currentTime = Math.max(0, state.t - 0.15); // sedikit mundur biar halus
+      }
+      if (state.playing) {
+        musicEl.play().then(() => {
+          if (icon) icon.className = 'fas fa-pause';
+        }).catch(() => {
+          // Autoplay mungkin diblokir — lanjut setelah interaksi pertama
+          const resumeOnce = () => {
+            musicEl.play().then(() => {
+              if (icon) icon.className = 'fas fa-pause';
+            }).finally(() => {
+              document.removeEventListener('click', resumeOnce);
+              document.removeEventListener('keydown', resumeOnce);
+            });
+          };
+          document.addEventListener('click', resumeOnce, {once:true});
+          document.addEventListener('keydown', resumeOnce, {once:true});
+        });
+      }
+    } catch(e){}
+  })();
+
+  // ---------- Clock & counters ----------
   function animateValue(id,start,end,duration){
     const obj=document.getElementById(id); let startTimestamp=null;
     const step=(ts)=>{ if(!startTimestamp) startTimestamp=ts; const progress=Math.min((ts-startTimestamp)/duration,1);

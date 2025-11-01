@@ -28,11 +28,24 @@ if ($stmt = $conn->prepare("SELECT id, filename, description FROM photos WHERE a
 if (!$photos) { http_response_code(404); die('No photos for this album'); }
 
 // --- SEO / Open Graph (pakai foto pertama) ---
-$first = $photos[0];
+$first   = $photos[0];
 $ogTitle = $album['title'] ?: 'Untitled';
 $ogDesc  = $album['description'] ?: 'Photo album';
 $ogImg   = 'uploads/' . rawurlencode($first['filename']);
 $created = date('M j, Y', strtotime($album['created_at']));
+
+// --- Back target: kembali ke admin dashboard kalau dari admin ---
+// Tentukan tujuan tombol Back
+$backHref = 'index.php#gallery';
+if (isset($_GET['from']) && $_GET['from'] === 'admin') {
+  $backHref = 'admin/dashboard.php';
+} elseif (!empty($_SERVER['HTTP_REFERER'])) {
+  // fallback: kalau referer dari /admin/, tetap balik ke dashboard
+  $ref = $_SERVER['HTTP_REFERER'];
+  if (strpos($ref, '/admin/') !== false) {
+    $backHref = 'admin/dashboard.php';
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,35 +84,21 @@ $created = date('M j, Y', strtotime($album['created_at']));
       position: fixed; left:0; right:0; bottom:0; z-index: 25;
       padding: 16px; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0));
     }
-    .swiper {
-      position: fixed; inset:0; width:100%; height:100%;
-    }
-    .swiper-slide {
-      display:flex; align-items:center; justify-content:center;
-      background: #000;
-    }
-    .swiper-slide img {
-      width: 100%; height: 100%; object-fit: contain; background: #000;
-    }
-    .swiper-button-prev, .swiper-button-next {
-      width: 44px; height: 44px; border-radius: 10px;
-      background: rgba(0,0,0,.35);
-    }
+    .swiper { position: fixed; inset:0; width:100%; height:100%; }
+    .swiper-slide { display:flex; align-items:center; justify-content:center; background:#000; }
+    .swiper-slide img { width:100%; height:100%; object-fit:contain; background:#000; }
+    .swiper-button-prev, .swiper-button-next { width:44px; height:44px; border-radius:10px; background:rgba(0,0,0,.35); }
     .swiper-pagination-bullet { background: rgba(255,255,255,.6); }
     .swiper-pagination-bullet-active { background: #fff; }
-    .meta {
-      font-size: 12px; color: var(--muted);
-    }
-    @media (max-width: 640px){
-      .btn span { display:none; }
-    }
+    .meta { font-size:12px; color:var(--muted); }
+    @media (max-width: 640px){ .btn span { display:none; } }
   </style>
 </head>
 <body class="safe">
 
   <!-- Top Bar -->
   <div class="topbar">
-    <a href="index.php#gallery" class="btn" title="Back">
+    <a href="<?php echo htmlspecialchars($backHref, ENT_QUOTES, 'UTF-8'); ?>" class="btn" title="Back">
       <i class="fa-solid fa-arrow-left"></i><span>Back</span>
     </a>
     <div class="truncate">
@@ -108,7 +107,9 @@ $created = date('M j, Y', strtotime($album['created_at']));
     </div>
     <div class="ml-auto flex gap-2">
       <button class="btn" id="btnShare" title="Share"><i class="fa-solid fa-share-nodes"></i><span>Share</span></button>
-      <a class="btn" href="<?php echo htmlspecialchars($ogImg, ENT_QUOTES, 'UTF-8'); ?>" download title="Download first"><i class="fa-solid fa-download"></i><span>Download</span></a>
+      <a class="btn" href="<?php echo htmlspecialchars($ogImg, ENT_QUOTES, 'UTF-8'); ?>" download title="Download first">
+        <i class="fa-solid fa-download"></i><span>Download</span>
+      </a>
     </div>
   </div>
 
@@ -141,40 +142,72 @@ $created = date('M j, Y', strtotime($album['created_at']));
     </div>
   </div>
 
+  <!-- Hidden audio so musik bisa lanjut dari index -->
+  <audio id="backgroundMusic" style="display:none" preload="metadata">
+    <source src="music/Space Song.mp3" type="audio/mpeg">
+  </audio>
+
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
-    // Init Swiper
-    const swiper = new Swiper('#album-swiper', {
-      loop: <?php echo count($photos) > 1 ? 'true' : 'false'; ?>,
+    // Swiper init (pakai ID yang ada)
+    const detailSwiper = new Swiper('#album-swiper', {
+      loop: true,
       spaceBetween: 10,
-      centeredSlides: true,
       keyboard: { enabled: true },
-      pagination: { el: '#album-swiper .swiper-pagination', clickable: true },
       navigation: {
         nextEl: '#album-swiper .swiper-button-next',
         prevEl: '#album-swiper .swiper-button-prev'
-      }
+      },
+      pagination: { el: '#album-swiper .swiper-pagination', clickable: true }
     });
 
-    // Share
-    document.getElementById('btnShare').addEventListener('click', async () => {
-      const data = {
-        title: '<?php echo addslashes($ogTitle); ?>',
-        text: '<?php echo addslashes($ogDesc); ?>',
-        url: window.location.href
-      };
-      if (navigator.share) {
-        try { await navigator.share(data); } catch(e) {}
-      } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
+    // Share (opsional)
+    document.getElementById('btnShare')?.addEventListener('click', async () => {
+      try {
+        await navigator.share?.({
+          title: <?php echo json_encode($ogTitle); ?>,
+          text: <?php echo json_encode($ogDesc); ?>,
+          url: window.location.href
+        });
+      } catch (_) {}
     });
 
-    // ESC to go back
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { history.back(); }
-    });
+    // Music: restore state dari sessionStorage (tanpa tombol di halaman ini)
+    const music = document.getElementById('backgroundMusic');
+
+    (function restoreMusicOnLoad(){
+      if(!music) return;
+      try{
+        const raw = sessionStorage.getItem('kept_music_state');
+        if(!raw) return;
+        const s = JSON.parse(raw || '{}');
+        if(typeof s.t === 'number') music.currentTime = Math.max(0, s.t - 0.15);
+        if(s.playing){
+          music.play().catch(() => {
+            // user gesture fallback
+            const once = () => {
+              music.play().catch(()=>{}); 
+              document.removeEventListener('click', once);
+              document.removeEventListener('keydown', once);
+            };
+            document.addEventListener('click', once, { once: true });
+            document.addEventListener('keydown', once, { once: true });
+          });
+        }
+      }catch(e){}
+    })();
+
+    // Simpan progress secara berkala
+    setInterval(() => {
+      if(!music) return;
+      try {
+        sessionStorage.setItem('kept_music_state', JSON.stringify({
+          t: music.currentTime,
+          playing: !music.paused
+        }));
+      } catch(e){}
+    }, 700);
   </script>
+
 </body>
 </html>
