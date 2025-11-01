@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kesalahan Teknis - Frame of Us</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .glitch {
+            position: relative;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            animation: glitch 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: #ff0080;
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitch 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both infinite;
+            color: #00ffff;
+            z-index: -2;
+        }
+        
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+        
+        @keyframes glitch-skew {
+            0% {
+                transform: skew(0deg);
+            }
+            10% {
+                transform: skew(-2deg);
+            }
+            20% {
+                transform: skew(2deg);
+            }
+            30% {
+                transform: skew(0deg);
+            }
+            40% {
+                transform: skew(1deg);
+            }
+            50% {
+                transform: skew(-1deg);
+            }
+            60% {
+                transform: skew(0deg);
+            }
+            70% {
+                transform: skew(-1deg);
+            }
+            80% {
+                transform: skew(1deg);
+            }
+            90% {
+                transform: skew(0deg);
+            }
+            100% {
+                transform: skew(0deg);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #4f46e5;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #4f46e5; }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #f59e0b, #ef4444, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full bg-gray-900/80 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
+        <!-- Header Section -->
+        <div class="p-8 border-b border-gray-700">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold gradient-text">Frame Of Us</h1>
+                    <p class="text-gray-400 mt-2">Adorable Moments</p>
+                </div>
+                <div class="mt-4 md:mt-0 text-center md:text-right">
+                    <div class="flex items-center justify-center md:justify-end space-x-4">
+                        <div class="text-sm">
+                            <span class="text-gray-400">Visitors:</span> 
+                            <span class="font-semibold">1/6</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-400">Online:</span> 
+                            <span class="font-semibold text-green-400">1</span>
+                        </div>
+                    </div>
+                    <button class="mt-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-all">
+                        EXPLORE GALLERY
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Content Section -->
+        <div class="p-8">
+            <div class="text-center mb-10">
+                <div class="glitch text-9xl font-black mb-4" data-text="500">500</div>
+                <h2 class="text-2xl font-semibold mb-2">Kesalahan Teknis Terdeteksi</h2>
+                <p class="text-gray-300 max-w-2xl mx-auto">
+                    Maaf, terjadi gangguan teknis yang tidak terduga. Tim kami sedang bekerja untuk memperbaikinya.
+                </p>
+            </div>
+            
+            <!-- Error Details -->
+            <div class="bg-gray-800/50 rounded-xl p-6 mb-8 border border-gray-700">
+                <div class="flex items-center mb-4">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2 pulse-glow"></div>
+                    <h3 class="font-medium">Unable audio data business in 1/2.5.</h3>
+                </div>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                    Obses ya'l beddingu tatapa, gillam dah bissa aja jadi ngerasa kehihaigam, alu sukara rgohol dama kama, suka liat kamu yanging wlovkuk, suka liat matanun bat bird tatas liat mukaba karabal lainap 'cantinyana', bisa dengan itu lagi ga ya sukat, seleni laji matan alu yaa sayanga babakali evaram, aemada seiva teras terasas, sulaesasa bisa wujadiri liat yang ada di nokta kamun vadalayhan salah pada suku-dualamang) hinekite madir owe et ar matanun pokonyaa alu selain dikung.
+                </p>
+            </div>
+            
+            <!-- Progress and Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <i class="fas fa-tachometer-alt mr-2 text-indigo-400"></i> Status Perbaikan
+                    </h3>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5 mb-4">
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full w-3/4"></div>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>0%</span>
+                        <span>75%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <i class="fas fa-clock mr-2 text-yellow-400"></i> Estimasi Waktu
+                    </h3>
+                    <div class="text-3xl font-bold text-center my-2">15:42</div>
+                    <p class="text-center text-gray-400 text-sm">Perkiraan waktu penyelesaian</p>
+                </div>
+            </div>
+            
+            <!-- Interactive Elements -->
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
+                <button class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg font-medium flex items-center justify-center hover:from-indigo-700 hover:to-purple-700 transition-all">
+                    <i class="fas fa-redo-alt mr-2"></i> Coba Lagi
+                </button>
+                <button class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 rounded-lg font-medium flex items-center justify-center hover:from-amber-700 hover:to-orange-700 transition-all">
+                    <i class="fas fa-home mr-2"></i> Kembali ke Beranda
+                </button>
+                <button class="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 rounded-lg font-medium flex items-center justify-center hover:from-pink-700 hover:to-rose-700 transition-all">
+                    <i class="fas fa-headset mr-2"></i> Hubungi Dukungan
+                </button>
+            </div>
+            
+            <!-- Animated Elements -->
+            <div class="flex justify-center space-x-8 mt-8">
+                <div class="floating text-4xl">
+                    <i class="fas fa-cog text-indigo-400"></i>
+                </div>
+                <div class="floating text-4xl" style="animation-delay: 0.5s;">
+                    <i class="fas fa-tools text-amber-400"></i>
+                </div>
+                <div class="floating text-4xl" style="animation-delay: 1s;">
+                    <i class="fas fa-server text-purple-400"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="p-4 bg-gray-800/50 text-center text-sm text-gray-400 border-t border-gray-700">
+            <p>Frame of Us &copy; 2023. Terima kasih atas pengertian Anda.</p>
+        </div>
+    </div>
+
+    <script>
+        // Interactive elements functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Retry button functionality
+            const retryButton = document.querySelector('button:first-of-type');
+            retryButton.addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memuat Ulang...';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            });
+            
+            // Home button functionality
+            const homeButton = document.querySelectorAll('button')[1];
+            homeButton.addEventListener('click', function() {
+                window.location.href = 'https://frameofus.free.nf/';
+            });
+            
+            // Support button functionality
+            const supportButton = document.querySelectorAll('button')[2];
+            supportButton.addEventListener('click', function() {
+                alert('Terima kasih telah menghubungi dukungan. Tim kami akan merespons secepatnya.');
+            });
+            
+            // Animated text effect
+            const errorText = document.querySelector('.glitch');
+            setInterval(() => {
+                errorText.classList.remove('glitch');
+                setTimeout(() => {
+                    errorText.classList.add('glitch');
+                }, 10);
+            }, 5000);
+            
+            // Simulate progress bar movement
+            const progressBar = document.querySelector('.bg-gradient-to-r');
+            let width = 75;
+            const progressInterval = setInterval(() => {
+                width += Math.random() * 5;
+                if (width >= 100) {
+                    width = 100;
+                    clearInterval(progressInterval);
+                }
+                progressBar.style.width = width + '%';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
