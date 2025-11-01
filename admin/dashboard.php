@@ -143,6 +143,9 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
   <header class="flex flex-wrap items-center justify-between mb-8 gap-4">
     <h1 class="text-3xl sm:text-4xl title-font text-white">ADMIN DASHBOARD</h1>
     <div class="flex flex-wrap gap-3">
+      <!-- Tambahkan di block header tombol -->
+      <a href="music.php" class="cute-btn"><i class="fa-solid fa-music mr-2"></i> MUSIC</a>
+
       <a href="upload.php" class="cute-btn"><i class="fas fa-plus mr-2"></i> UPLOAD</a>
       <a href="../index.php" class="cute-btn" style="background: var(--purple);"><i class="fas fa-globe mr-2"></i> VIEW SITE</a>
     </div>

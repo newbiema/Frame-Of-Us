@@ -33,6 +33,18 @@ if ($stmt = $conn->prepare('SELECT id FROM visitors WHERE ip_address = ? LIMIT 1
   $stmt->close();
 }
 
+// ambil lagu aktif
+$bgMusicFile  = '';
+$bgMusicTitle = '';
+if ($st=$conn->prepare("SELECT v FROM settings WHERE k='bg_music' LIMIT 1")){
+  $st->execute(); $r=$st->get_result(); if($r && $row=$r->fetch_assoc()) $bgMusicFile=$row['v'] ?? ''; $st->close();
+}
+if ($st=$conn->prepare("SELECT v FROM settings WHERE k='bg_music_title' LIMIT 1")){
+  $st->execute(); $r=$st->get_result(); if($r && $row=$r->fetch_assoc()) $bgMusicTitle=$row['v'] ?? ''; $st->close();
+}
+// path final (fallback ke Space Song.mp3 jika kosong)
+$musicSrc = $bgMusicFile ? ('music/'.rawurlencode($bgMusicFile)) : 'music/Space Song.mp3';
+
 $totalVisitors = 0; $onlineVisitors = 0;
 if ($res = $conn->query('SELECT COUNT(*) AS total FROM visitors')) {
   $row = $res->fetch_assoc(); $totalVisitors = (int)($row['total'] ?? 0); $res->free();
@@ -259,13 +271,16 @@ if ($albums) {
   </div>
 </main>
 
-<!-- Music Button -->
+<!-- Music Button (tetap) -->
 <div class="fixed bottom-6 right-6 z-50">
   <button id="toggleMusic" class="cute-btn" style="width:60px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
     <i id="musicIcon" class="fas fa-play"></i>
   </button>
 </div>
-<audio id="backgroundMusic" loop preload="metadata"><source src="music/Space Song.mp3" type="audio/mpeg"></audio>
+
+<audio id="backgroundMusic" loop preload="metadata">
+  <source src="<?= htmlspecialchars($musicSrc, ENT_QUOTES, 'UTF-8') ?>" type="audio/mpeg">
+</audio>
 
 <footer class="px-6 pb-14">
   <div class="max-w-4xl mx-auto text-center">
