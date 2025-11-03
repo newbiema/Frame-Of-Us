@@ -18,18 +18,30 @@ $totalAlbums = 0;
 $totalPhotos = 0;
 
 if ($res = $conn->query("SELECT COUNT(*) AS c FROM albums")) {
-  $totalAlbums = (int)($res->fetch_assoc()['c'] ?? 0); $res->free();
+  $totalAlbums = (int)($res->fetch_assoc()['c'] ?? 0); 
+  $res->free();
 }
 if ($res = $conn->query("SELECT COUNT(*) AS c FROM photos")) {
-  $totalPhotos = (int)($res->fetch_assoc()['c'] ?? 0); $res->free();
+  $totalPhotos = (int)($res->fetch_assoc()['c'] ?? 0); 
+  $res->free();
 }
 
 /* ----------------------- Albums ------------------------ */
+/*
+   cover sekarang diambil dari foto dengan position paling kecil
+   lalu fallback ke id ASC
+*/
 $albums = [];
 $sqlAlbums = "
   SELECT 
     a.id, a.title, a.description, a.created_at,
-    (SELECT filename FROM photos WHERE album_id = a.id ORDER BY id ASC LIMIT 1) AS cover,
+    (
+      SELECT filename 
+      FROM photos 
+      WHERE album_id = a.id 
+      ORDER BY position ASC, id ASC 
+      LIMIT 1
+    ) AS cover,
     (SELECT COUNT(*) FROM photos WHERE album_id = a.id) AS photo_count
   FROM albums a
   ORDER BY a.created_at DESC
@@ -39,7 +51,7 @@ if ($res = $conn->query($sqlAlbums)) {
   $res->free();
 }
 
-/* --- album list for filter --- */
+/* --- album list for filter (buat tabel photos) --- */
 $albumOptions = [];
 $ra = $conn->query("SELECT id, COALESCE(title,'Untitled') AS t FROM albums ORDER BY created_at DESC");
 while ($r = $ra->fetch_assoc()) $albumOptions[] = $r;
@@ -58,11 +70,14 @@ $types  = "";
 
 if ($q !== "") {
   $where .= " AND (p.description LIKE CONCAT('%', ?, '%') OR a.title LIKE CONCAT('%', ?, '%')) ";
-  $params[] = $q; $params[] = $q; $types .= "ss";
+  $params[] = $q; 
+  $params[] = $q; 
+  $types   .= "ss";
 }
 if ($albumId > 0) {
   $where .= " AND p.album_id = ? ";
-  $params[] = $albumId; $types .= "i";
+  $params[] = $albumId; 
+  $types   .= "i";
 }
 
 /* count total rows */
@@ -143,9 +158,8 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
   <header class="flex flex-wrap items-center justify-between mb-8 gap-4">
     <h1 class="text-3xl sm:text-4xl title-font text-white">ADMIN DASHBOARD</h1>
     <div class="flex flex-wrap gap-3">
-      <!-- Tambahkan di block header tombol -->
+      <!-- Tombol music setting -->
       <a href="music.php" class="cute-btn"><i class="fa-solid fa-music mr-2"></i> MUSIC</a>
-
       <a href="upload.php" class="cute-btn"><i class="fas fa-plus mr-2"></i> UPLOAD</a>
       <a href="../index.php" class="cute-btn" style="background: var(--purple);"><i class="fas fa-globe mr-2"></i> VIEW SITE</a>
     </div>
@@ -156,14 +170,14 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
     <div class="pixel-stat p-6 flex items-center justify-between">
       <div>
         <p class="text-gray-600 text-sm">TOTAL ALBUMS</p>
-        <h2 class="text-2xl font-bold" style="color: var(--purple);"><?php echo $totalAlbums; ?></h2>
+        <h2 class="text-2xl font-bold" style="color: var(--purple);"><?= $totalAlbums ?></h2>
       </div>
       <div class="pixel-icon" style="background: var(--purple);"><i class="fas fa-folder-open text-white"></i></div>
     </div>
     <div class="pixel-stat p-6 flex items-center justify-between">
       <div>
         <p class="text-gray-600 text-sm">TOTAL PHOTOS</p>
-        <h2 class="text-2xl font-bold" style="color: var(--pink);"><?php echo $totalPhotos; ?></h2>
+        <h2 class="text-2xl font-bold" style="color: var(--pink);"><?= $totalPhotos ?></h2>
       </div>
       <div class="pixel-icon" style="background: var(--pink);"><i class="fas fa-camera text-white"></i></div>
     </div>
@@ -171,7 +185,7 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
       <div>
         <p class="text-gray-600 text-sm">AVG/ALBUM</p>
         <h2 class="text-2xl font-bold" style="color: var(--blue);">
-          <?php echo $totalAlbums ? ceil($totalPhotos / max(1,$totalAlbums)) : 0; ?>
+          <?= $totalAlbums ? ceil($totalPhotos / max(1,$totalAlbums)) : 0; ?>
         </h2>
       </div>
       <div class="pixel-icon" style="background: var(--blue);"><i class="fas fa-chart-simple text-white"></i></div>
@@ -199,27 +213,29 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
         ?>
         <div class="album-card border-4 border-black bg-white shadow p-3">
           <div class="relative overflow-hidden rounded" style="aspect-ratio:1/1;">
-            <img src="<?php echo $cover; ?>" alt="<?php echo $title; ?>" loading="lazy" decoding="async" class="w-full h-full object-cover card-img">
+            <img src="<?= $cover; ?>" alt="<?= $title; ?>" loading="lazy" decoding="async" class="w-full h-full object-cover card-img">
             <div class="absolute top-2 left-2 badge">
-              <i class="fa-regular fa-image mr-1"></i><?php echo $count; ?> photos
+              <i class="fa-regular fa-image mr-1"></i><?= $count; ?> photos
             </div>
-            <a href="../post.php?id=<?php echo $aid; ?>&from=admin" class="absolute inset-0" aria-label="Open album"></a>
+            <!-- tetap kirim from=admin -->
+            <a href="../post.php?id=<?= $aid; ?>&from=admin" class="absolute inset-0" aria-label="Open album"></a>
           </div>
           <div class="pt-3">
             <div class="flex items-start justify-between gap-2">
               <h3 class="font-semibold leading-tight">
-                <a href="../post.php?id=<?php echo $aid; ?>&from=admin" class="hover:underline">
-                  <?php echo $title; ?>
+                <a href="../post.php?id=<?= $aid; ?>&from=admin" class="hover:underline">
+                  <?= $title; ?>
                 </a>
               </h3>
-              <span class="badge"><?php echo $date; ?></span>
+              <span class="badge"><?= $date; ?></span>
             </div>
-            <p class="text-gray-600 text-sm line-clamp-2 mt-1"><?php echo $desc ?: '<span class="italic text-gray-400">no description…</span>'; ?></p>
+            <p class="text-gray-600 text-sm line-clamp-2 mt-1">
+              <?= $desc ?: '<span class="italic text-gray-400">no description…</span>'; ?>
+            </p>
             <div class="mt-3 flex items-center gap-2 text-xs">
-              <!-- ganti jadi -->
-<a href="../post.php?id=<?php echo $aid; ?>&from=admin" class="px-3 py-2 border-2 border-black bg-white hover:bg-black hover:text-white transition">View</a>
-              <a href="album_edit.php?id=<?php echo $aid; ?>" class="px-3 py-2 border-2 border-black bg-white hover:bg-black hover:text-white transition">Edit</a>
-              <button onclick="confirmDeleteAlbum(<?php echo $aid; ?>)" class="px-3 py-2 border-2 border-black bg-white hover:bg-red-600 hover:text-white transition">Delete</button>
+              <a href="../post.php?id=<?= $aid; ?>&from=admin" class="px-3 py-2 border-2 border-black bg-white hover:bg-black hover:text-white transition">View</a>
+              <a href="album_edit.php?id=<?= $aid; ?>" class="px-3 py-2 border-2 border-black bg-white hover:bg-black hover:text-white transition">Edit</a>
+              <button onclick="confirmDeleteAlbum(<?= $aid; ?>)" class="px-3 py-2 border-2 border-black bg-white hover:bg-red-600 hover:text-white transition">Delete</button>
             </div>
           </div>
         </div>
@@ -275,28 +291,28 @@ $totalPages = max(1, (int)ceil($totalRows / $perPage));
             <tr><td colspan="6" class="px-4 py-6 text-center italic text-gray-600">No photos found.</td></tr>
           <?php else: $no = $offset + 1; foreach($photos as $row): ?>
             <tr class="hover:bg-pink-50 transition-colors">
-              <td class="px-4 py-3 font-mono"><?php echo $no++; ?></td>
+              <td class="px-4 py-3 font-mono"><?= $no++; ?></td>
               <td class="px-4 py-3">
-                <img src="../uploads/<?php echo h($row['filename']); ?>"
+                <img src="../uploads/<?= h($row['filename']); ?>"
                      loading="lazy" decoding="async"
                      onclick="openLightbox(this.src)"
                      class="h-14 w-14 object-cover border-2 border-black cursor-pointer hover:scale-110 transition mx-auto">
               </td>
-              <td class="px-4 py-3 max-w-[360px] truncate" title="<?php echo h($row['description']); ?>">
-                <?php echo h($row['description']); ?>
+              <td class="px-4 py-3 max-w-[360px] truncate" title="<?= h($row['description']); ?>">
+                <?= h($row['description']); ?>
               </td>
               <td class="px-4 py-3">
-                <a href="../post.php?id=<?php echo (int)$row['album_id']; ?>&from=admin" class="underline hover:no-underline">
-                  <?php echo h($row['album_title']); ?>
+                <a href="../post.php?id=<?= (int)$row['album_id']; ?>&from=admin" class="underline hover:no-underline">
+                  <?= h($row['album_title']); ?>
                 </a>
               </td>
               <td class="px-4 py-3 font-mono text-sm">
-                <?php echo date("d M Y", strtotime($row['created_at'])); ?>
+                <?= date("d M Y", strtotime($row['created_at'])); ?>
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center justify-center gap-2">
-                  <a href="edit.php?id=<?php echo (int)$row['id']; ?>" class="btn-mini" title="Edit">Edit</a>
-                  <button onclick="confirmDeletePhoto(<?php echo (int)$row['id']; ?>)" class="btn-mini" title="Delete">Del</button>
+                  <a href="edit.php?id=<?= (int)$row['id']; ?>" class="btn-mini" title="Edit">Edit</a>
+                  <button onclick="confirmDeletePhoto(<?= (int)$row['id']; ?>)" class="btn-mini" title="Delete">Del</button>
                 </div>
               </td>
             </tr>

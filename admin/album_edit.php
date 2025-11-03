@@ -56,6 +56,27 @@ $status=""; $message="";
 if ($_SERVER['REQUEST_METHOD']==='POST'){
   $action = $_POST['action'] ?? 'save_album';
 
+  // 0) reorder photos (drag & drop)
+  if ($action === 'reorder_photos') {
+    $order = $_POST['order'] ?? [];
+    if (is_array($order) && $order) {
+      $pos = 1;
+      if ($st = $conn->prepare("UPDATE photos SET position=? WHERE id=? AND album_id=?")) {
+        foreach ($order as $pid) {
+          $pid = (int)$pid;
+          if ($pid <= 0) continue;
+          $st->bind_param('iii', $pos, $pid, $aid);
+          $st->execute();
+          $pos++;
+        }
+        $st->close();
+      }
+      $status='success'; $message='Urutan foto disimpan.';
+    }
+    header("Location: album_edit.php?id=".$aid."&s=$status&m=".urlencode($message));
+    exit;
+  }
+
   // 1) Simpan judul/desc + tambah foto baru
   if ($action === 'save_album'){
     $title = trim($_POST['title'] ?? '');
@@ -73,8 +94,16 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
       if (count($files) > $maxFiles){
         $status='error'; $message="Maksimal $maxFiles file per unggah.";
       } else {
+        // cari posisi terakhir
+        $lastPos = 0;
+        if ($r = $conn->query("SELECT COALESCE(MAX(position),0) AS p FROM photos WHERE album_id=".$aid)) {
+          $row = $r->fetch_assoc();
+          $lastPos = (int)($row['p'] ?? 0);
+          $r->free();
+        }
+
         $ok=0; $errs=[]; $finfo=new finfo(FILEINFO_MIME_TYPE);
-        $stIns=$conn->prepare("INSERT INTO photos (album_id, description, filename, created_at) VALUES (?, ?, ?, NOW())");
+        $stIns=$conn->prepare("INSERT INTO photos (album_id, description, filename, position, created_at) VALUES (?, ?, ?, ?, NOW())");
         foreach($files as $i=>$f){
           if($f['error']===UPLOAD_ERR_NO_FILE) continue;
           if($f['error']!==UPLOAD_ERR_OK){ $errs[]="File #".($i+1)." gagal (err {$f['error']})."; continue; }
@@ -90,9 +119,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
 
           if(!move_uploaded_file($f['tmp_name'],$dest)){ $errs[]="Gagal simpan {$f['name']}."; continue; }
 
-          $empty='';
+          $empty=''; $lastPos++;
           if($stIns){
-            $stIns->bind_param('iss',$aid,$empty,$final);
+            $stIns->bind_param('issis',$aid,$empty,$final,$lastPos);
             if($stIns->execute()){ $ok++; } else { $errs[]="Gagal insert DB untuk {$f['name']}."; }
           } else { $errs[]="DB statement gagal init."; }
         }
@@ -173,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
 
 /* ---------- reload photos for view ---------- */
 $photos=[];
-if ($st=$conn->prepare("SELECT id,filename,description FROM photos WHERE album_id=? ORDER BY id ASC")){
+if ($st=$conn->prepare("SELECT id,filename,description,COALESCE(position,0) AS position FROM photos WHERE album_id=? ORDER BY position ASC, id ASC")){
   $st->bind_param('i',$aid); $st->execute();
   $r=$st->get_result(); while($row=$r->fetch_assoc()){ $photos[]=$row; } $st->close();
 }
@@ -189,6 +218,8 @@ if (isset($_GET['s'])){ $status=$_GET['s']; $message=$_GET['m']??""; }
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- SortableJS biar drag enak di mobile -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Short+Stack&display=swap" rel="stylesheet">
   <style>
     :root{ --pink:#ff9bb3; --purple:#b5a1ff; --blue:#9bd4ff; --yellow:#ffe08a; }
@@ -202,17 +233,17 @@ if (isset($_GET['s'])){ $status=$_GET['s']; $message=$_GET['m']??""; }
     .pixel-textarea{ resize:none; }
     .pixel-file-input::file-selector-button{ background:var(--blue); border:3px solid #000; padding:4px 8px; font-family:'Press Start 2P',cursive; font-size:.7rem; margin-right:10px; }
 
-    /* --- grid foto rapi --- */
     .grid-preview{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; }
-    .thumb-card{ display:flex; flex-direction:column; gap:10px; }
+    .thumb-card{ display:flex; flex-direction:column; gap:10px; border:3px solid #000; background:#fff; padding:8px; position:relative; }
     .thumb-wrap{ aspect-ratio:1/1; overflow:hidden; }
     .thumb{ width:100%; height:100%; object-fit:cover; display:block; }
+    .order-badge{ position:absolute; top:6px; left:6px; background:#000; color:#fff; font-size:.6rem; padding:2px 6px; z-index:5; }
+    .drag-handle{ position:absolute; top:6px; right:6px; background:#fff; border:2px solid #000; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:grab; touch-action:none; }
 
-    /* tombol kecil */
     .mini-btn{ border:2px solid #000; padding:6px 10px; background:#fff; font-size:.72rem; box-shadow:3px 3px 0 rgba(0,0,0,.15); line-height:1; }
     .mini-btn.del{ background:#ffdddd; }
     .mini-btn.rep{ background:#ddf2ff; }
-    .btn-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .btn-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; }
     .replace-input{ display:none; }
     .mini-note{ font-size:.7rem; opacity:.7; }
   </style>
@@ -265,30 +296,40 @@ if (isset($_GET['s'])){ $status=$_GET['s']; $message=$_GET['m']??""; }
 
     <!-- Grid foto -->
     <div class="pixel-border p-6">
-      <h2 class="title-font text-xl mb-4">CURRENT PHOTOS</h2>
+      <div class="flex items-center justify-between mb-4 gap-3">
+        <h2 class="title-font text-xl">CURRENT PHOTOS</h2>
+        <?php if ($photos): ?>
+        <form method="POST" id="orderForm">
+          <input type="hidden" name="action" value="reorder_photos">
+          <div id="orderInputs"></div>
+          <button type="submit" class="mini-btn"><i class="fa-solid fa-floppy-disk mr-1"></i>Save Order</button>
+        </form>
+        <?php endif; ?>
+      </div>
+
       <?php if ($photos): ?>
-        <div class="grid-preview">
+        <div class="grid-preview" id="photoGrid">
           <?php foreach($photos as $p): $pid=(int)$p['id']; ?>
-            <div class="thumb-card">
-              <div class="pixel-border thumb-wrap">
+            <div class="thumb-card" data-id="<?= $pid ?>">
+              <div class="relative thumb-wrap">
+                <span class="order-badge"></span>
+                <span class="drag-handle">&#9776;</span>
                 <img src="../uploads/<?= h($p['filename']) ?>" alt="" class="thumb">
               </div>
 
               <div class="btn-row">
-                <!-- Delete -->
                 <form method="POST" onsubmit="return confirm('Hapus foto ini?');">
                   <input type="hidden" name="action" value="delete_photo">
                   <input type="hidden" name="photo_id" value="<?= $pid ?>">
-                  <button class="mini-btn del"><i class="fa-solid fa-trash-can mr-1"></i>Delete</button>
+                  <button class="mini-btn del"><i class="fa-solid fa-trash-can mr-1"></i>Del</button>
                 </form>
 
-                <!-- Replace (file input hidden + auto submit) -->
                 <form method="POST" enctype="multipart/form-data" class="inline-flex items-center gap-2">
                   <input type="hidden" name="action" value="replace_photo">
                   <input type="hidden" name="photo_id" value="<?= $pid ?>">
                   <input id="file-<?= $pid ?>" class="replace-input" type="file" name="replace_file" accept="image/*" required>
                   <label for="file-<?= $pid ?>" class="mini-btn rep cursor-pointer">
-                    <i class="fa-solid fa-rotate mr-1"></i>Replace
+                    <i class="fa-solid fa-rotate mr-1"></i>Rep
                   </label>
                 </form>
               </div>
@@ -302,7 +343,7 @@ if (isset($_GET['s'])){ $status=$_GET['s']; $message=$_GET['m']??""; }
   </div>
 
   <script>
-    // Auto-submit replace form saat file dipilih supaya UI tetap minimalis
+    // auto-submit replace
     document.querySelectorAll('.replace-input').forEach(inp=>{
       inp.addEventListener('change', e=>{
         if(e.target.files && e.target.files.length){
@@ -310,6 +351,40 @@ if (isset($_GET['s'])){ $status=$_GET['s']; $message=$_GET['m']??""; }
         }
       });
     });
+
+    const grid = document.getElementById('photoGrid');
+    const orderInputs = document.getElementById('orderInputs');
+
+    function rebuildOrderInputs() {
+      if (!grid || !orderInputs) return;
+      orderInputs.innerHTML = '';
+      const cards = grid.querySelectorAll('.thumb-card');
+      cards.forEach((card, i) => {
+        const id = card.getAttribute('data-id');
+        // badge nomor
+        const badge = card.querySelector('.order-badge');
+        if (badge) badge.textContent = i + 1;
+
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'order[]';
+        hidden.value = id;
+        orderInputs.appendChild(hidden);
+      });
+    }
+
+    if (grid) {
+      // aktifkan Sortable di sini
+      new Sortable(grid, {
+        animation: 150,
+        handle: '.drag-handle',
+        onSort: function () {
+          rebuildOrderInputs();
+        }
+      });
+      // initial
+      rebuildOrderInputs();
+    }
   </script>
 </body>
 </html>

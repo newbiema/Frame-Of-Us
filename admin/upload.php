@@ -10,7 +10,7 @@ $message = "";
 $status = "";
 
 // Konfigurasi
-$uploadDir = __DIR__ . '/../uploads';                 // <- jangan langsung realpath
+$uploadDir = __DIR__ . '/../uploads';
 $maxFiles  = 20;
 $maxSize   = 5 * 1024 * 1024; // 5MB
 $allowedMime = ['image/jpeg','image/png','image/webp','image/gif'];
@@ -31,8 +31,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($message)) {
         $message = "Tidak ada file yang dipilih.";
         $status  = "error";
     } else {
-        $files = reArrayFiles($_FILES['fotos']);
-        // buang entri kosong
+        // reArray dulu
+        $allFiles = reArrayFiles($_FILES['fotos']);
+
+        // ambil urutan dari front-end (misal ["2","0","1"])
+        $orderedIndexes = $_POST['order'] ?? [];
+        $files = [];
+
+        if ($orderedIndexes) {
+            // susun ulang berdasarkan order[]
+            foreach ($orderedIndexes as $idxStr) {
+                $idx = (int)$idxStr;
+                if (isset($allFiles[$idx])) {
+                    $files[] = $allFiles[$idx];
+                }
+            }
+        } else {
+            // fallback: pakai urutan asli
+            $files = $allFiles;
+        }
+
+        // buang yang kosong
         $files = array_values(array_filter($files, fn($f) => isset($f['error']) && $f['error'] !== UPLOAD_ERR_NO_FILE));
 
         if (!$files) {
@@ -42,10 +61,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($message)) {
             $message = "Maksimal $maxFiles file per unggah.";
             $status  = "error";
         } else {
-            // 1) Buat satu album untuk unggahan ini
+            // 1) buat album
             $albumId = null;
+            // sesuaikan field albums kamu: kalau ga ada created_by, ubah query
             if ($stmtAlbum = $conn->prepare("INSERT INTO albums (title, description, created_by) VALUES (?, ?, ?)")) {
-                // kalau kolom created_by tidak ada, ganti bind jadi "ss" dan hapus $userId di bind_param
                 $stmtAlbum->bind_param("ssi", $title, $description, $userId);
                 $stmtAlbum->execute();
                 $albumId = $stmtAlbum->insert_id;
@@ -59,11 +78,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($message)) {
                 $ok = 0; $errs = [];
                 $finfo = new finfo(FILEINFO_MIME_TYPE);
 
-                // 2) Siapkan insert foto (pakai album_id)
-                // Jika skema fotomu belum ada kolom file_size & mime_type, ubah query ke kolom yang ada
+                // kalau tabel photos kamu punya kolom position, kita isi berurutan
+                $position = 1;
+
+                // sesuaikan field photos kamu
                 $stmt = $conn->prepare("
-                    INSERT INTO photos (title, description, filename, album_id, created_at)
-                    VALUES (?, ?, ?, ?, NOW())
+                    INSERT INTO photos (album_id, description, filename, created_at, position)
+                    VALUES (?, ?, ?, NOW(), ?)
                 ");
 
                 foreach ($files as $i => $f) {
@@ -90,14 +111,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($message)) {
                     }
 
                     if ($stmt) {
-                        $stmt->bind_param("sssi", $title, $description, $final, $albumId);
-                        if ($stmt->execute()) { $ok++; }
-                        else { $errs[] = "Gagal insert DB untuk {$f['name']}."; }
+                        $emptyDesc = ""; // desc foto per item, kamu bisa isi lain
+                        $stmt->bind_param("issi", $albumId, $emptyDesc, $final, $position);
+                        if ($stmt->execute()) {
+                            $ok++;
+                            $position++;
+                        } else {
+                            $errs[] = "Gagal insert DB untuk {$f['name']}.";
+                        }
                     } else {
                         $errs[] = "DB statement gagal diinisialisasi.";
                     }
                 }
-                if (isset($stmt) && $stmt) $stmt->close();
+                if ($stmt) $stmt->close();
 
                 if ($ok > 0) {
                     $status = "success";
@@ -151,6 +177,8 @@ function fileErrorText($code) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- SortableJS untuk drag di mobile -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Short+Stack&display=swap" rel="stylesheet">
   <style>
     :root { --pink:#ff9bb3; --purple:#b5a1ff; --blue:#9bd4ff; --yellow:#ffe08a; }
@@ -159,15 +187,27 @@ function fileErrorText($code) {
     .pixel-border:before { content:''; position:absolute; inset:2px; border:2px solid #fff; pointer-events:none; }
     .cute-btn { background:var(--pink); color:#fff; border:3px solid #000; padding:10px 20px; font-size:.9rem; box-shadow:5px 5px 0 rgba(0,0,0,.2); transition:.1s; font-family:'Press Start 2P', cursive; text-shadow:2px 2px 0 rgba(0,0,0,.2); }
     .cute-btn:hover { transform:translate(2px,2px); box-shadow:3px 3px 0 rgba(0,0,0,.2); }
-    .cute-btn:active { transform:translate(4px,4px); box-shadow:none; }
     .title-font { font-family:'Press Start 2P', cursive; text-shadow:3px 3px 0 var(--purple); }
     .pixel-input,.pixel-textarea,.pixel-file-input { border:3px solid #000; padding:8px 12px; font-family:'Short Stack', cursive; box-shadow:4px 4px 0 rgba(0,0,0,.1); }
     .pixel-textarea{ resize:none; }
-    .pixel-input:focus,.pixel-textarea:focus{ outline:none; box-shadow:4px 4px 0 var(--purple); }
-    .pixel-file-input{ background:#fff; }
     .pixel-file-input::file-selector-button{ background:var(--blue); border:3px solid #000; padding:4px 8px; font-family:'Press Start 2P', cursive; font-size:.7rem; margin-right:10px; }
-    .pixel-preview{ border:3px solid #000; box-shadow:4px 4px 0 rgba(0,0,0,.1); background:#fff; object-fit:cover; }
+
     .grid-preview{ display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; }
+    .preview-item{
+      position:relative; border:3px solid #000; background:#fff; box-shadow:4px 4px 0 rgba(0,0,0,.1);
+      display:flex; flex-direction:column; gap:4px; align-items:stretch;
+    }
+    .preview-item img{ width:100%; height:80px; object-fit:cover; }
+    .drag-handle{
+      position:absolute; top:4px; left:4px;
+      background:rgba(255,255,255,.9); border:2px solid #000;
+      width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+      font-size:14px; cursor:grab;
+      touch-action:none;
+    }
+    .preview-index{
+      text-align:center; font-size:.65rem; padding:2px 0 4px; background:#fff;
+    }
   </style>
 </head>
 <body class="min-h-screen p-6" style="background: linear-gradient(to bottom right, var(--pink), var(--purple));">
@@ -192,31 +232,30 @@ function fileErrorText($code) {
   <?php endif; ?>
 
   <div class="pixel-border bg-white p-6">
-    <form action="upload.php" method="POST" enctype="multipart/form-data">
-      <!-- Judul album -->
+    <form action="upload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
       <div class="mb-4">
-        <label for="title" class="block text-sm font-medium mb-1">ALBUM TITLE</label>
-        <input type="text" id="title" name="title" class="pixel-input w-full" placeholder="Judul album (opsional)">
+        <label class="block text-sm font-medium mb-1">ALBUM TITLE</label>
+        <input type="text" name="title" class="pixel-input w-full" placeholder="Judul album (opsional)">
       </div>
 
-      <!-- Deskripsi album -->
       <div class="mb-4">
-        <label for="description" class="block text-sm font-medium mb-1">ALBUM DESCRIPTION</label>
-        <textarea name="description" id="description" required rows="4" class="pixel-textarea w-full" placeholder="Deskripsi album"></textarea>
+        <label class="block text-sm font-medium mb-1">ALBUM DESCRIPTION</label>
+        <textarea name="description" required rows="4" class="pixel-textarea w-full" placeholder="Deskripsi album"></textarea>
       </div>
 
-      <!-- Pilih banyak foto -->
       <div class="mb-4">
-        <label for="fotos" class="block text-sm font-medium mb-1">CHOOSE PHOTOS</label>
+        <label class="block text-sm font-medium mb-1">CHOOSE PHOTOS</label>
         <input type="file" id="fotos" name="fotos[]" accept="image/*" multiple required class="pixel-file-input w-full">
-        <p class="text-xs mt-1 opacity-80">Format: JPG/PNG/WEBP/GIF, maksimal 5MB per file. Bisa pilih banyak.</p>
+        <p class="text-xs mt-1 opacity-80">Pilih banyak file sekaligus, lalu urutkan di bawah (bisa drag di HP).</p>
       </div>
 
-      <!-- Preview -->
       <div class="mb-4">
-        <label class="block text-sm font-medium mb-1">PREVIEW</label>
+        <label class="block text-sm font-medium mb-1">PREVIEW (drag icon ≡ untuk urutkan)</label>
         <div id="preview-grid" class="grid-preview"></div>
       </div>
+
+      <!-- hidden order diisi dari JS -->
+      <div id="order-holder"></div>
 
       <div class="grid grid-cols-1 gap-3 mt-6">
         <button type="submit" class="cute-btn"><i class="fas fa-upload mr-2"></i> CREATE ALBUM & UPLOAD</button>
@@ -229,22 +268,72 @@ function fileErrorText($code) {
 </div>
 
 <script>
-  // preview banyak gambar
-  const input = document.getElementById('fotos');
-  const grid  = document.getElementById('preview-grid');
-  input.addEventListener('change', () => {
-    grid.innerHTML = '';
-    [...(input.files||[])].forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = document.createElement('img');
-        img.className = 'pixel-preview w-full h-24';
-        img.src = e.target.result;
-        grid.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    });
+const input = document.getElementById('fotos');
+const grid  = document.getElementById('preview-grid');
+const orderHolder = document.getElementById('order-holder');
+
+function rebuildOrderInputs() {
+  // hapus dulu
+  orderHolder.innerHTML = '';
+  const items = grid.querySelectorAll('.preview-item');
+  items.forEach((item, newIndex) => {
+    const originalIndex = item.getAttribute('data-index');
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'order[]';
+    hidden.value = originalIndex;
+    orderHolder.appendChild(hidden);
+
+    // update nomor urut yg kelihatan
+    const idxEl = item.querySelector('.preview-index');
+    if (idxEl) idxEl.textContent = (newIndex+1);
   });
+}
+
+input.addEventListener('change', () => {
+  grid.innerHTML = '';
+  const files = input.files;
+  [...files].forEach((file, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'preview-item';
+    wrap.setAttribute('data-index', idx);
+
+    const handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.innerHTML = '&#9776;';
+
+    const img = document.createElement('img');
+    const reader = new FileReader();
+    reader.onload = e => img.src = e.target.result;
+    reader.readAsDataURL(file);
+
+    const info = document.createElement('div');
+    info.className = 'preview-index';
+    info.textContent = (idx+1);
+
+    wrap.appendChild(handle);
+    wrap.appendChild(img);
+    wrap.appendChild(info);
+    grid.appendChild(wrap);
+  });
+
+  // setelah preview dibuat, rebuild order
+  rebuildOrderInputs();
+});
+
+// aktifkan SortableJS biar drag enak di mobile
+new Sortable(grid, {
+  animation: 150,
+  handle: '.drag-handle',
+  onSort: function() {
+    rebuildOrderInputs();
+  }
+});
+
+// sebelum submit pastikan order terbaru dikirim
+document.getElementById('uploadForm').addEventListener('submit', ()=>{
+  rebuildOrderInputs();
+});
 </script>
 </body>
 </html>
