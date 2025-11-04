@@ -178,60 +178,226 @@ if ($albums) {
     }
     a.link-plain { text-decoration:none; color:#000; }
     a.link-plain:hover { text-decoration: underline; text-decoration-style: dotted; }
+
+    /* New Enhanced Styles */
+    .hero-section {
+      position: relative;
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
+    
+    .gradient-text {
+      background: linear-gradient(45deg, var(--pink), var(--purple), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .memory-card {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .memory-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 8px 16px 0 rgba(0,0,0,.2);
+    }
+    
+    .memory-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--blue));
+      z-index: 10;
+    }
+    
+    .section-divider {
+      height: 3px;
+      background: repeating-linear-gradient(90deg, #000, #000 12px, transparent 12px, transparent 24px);
+      margin: 3rem 0;
+      position: relative;
+    }
+    
+    .section-divider::before {
+      content: '✦';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(to bottom right, var(--pink), var(--purple));
+      padding: 0 15px;
+      font-size: 1.2rem;
+    }
+    
+    .visitor-counter {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(10px);
+      border: 3px solid #000;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 6px 6px 0 rgba(0,0,0,.15);
+    }
+    
+    .music-player {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      transition: all 0.3s ease;
+    }
+    
+    .music-player:hover {
+      transform: scale(1.1);
+    }
+    
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      padding: 2rem 0;
+    }
+    
+    .footer-section {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(5px);
+      border-top: 3px solid #000;
+      margin-top: 4rem;
+      padding: 2rem 0;
+    }
+    
+    .social-icon {
+      transition: all 0.3s ease;
+    }
+    
+    .social-icon:hover {
+      transform: translateY(-3px) rotate(5deg);
+      background: var(--yellow) !important;
+    }
+    
+    .typing-container {
+      min-height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .hero-section {
+        min-height: 70vh;
+        padding: 2rem 0;
+      }
+      
+      .album-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .card-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      
+      .card-title {
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body class="overflow-x-hidden">
 
-<!-- Decorative elements -->
-<div class="pixel-cloud" style="width:80px; height:40px; top:5%; left:5%;"></div>
+<!-- Enhanced Decorative elements -->
+<div class="pixel-cloud floating-element" style="width:80px; height:40px; top:5%; left:5%;"></div>
 <div class="pixel-cloud" style="width:60px; height:30px; top:10%; right:10%;"></div>
-<div class="pixel-star" style="top:15%; left:15%;">✦</div>
+<div class="pixel-star floating-element" style="top:15%; left:15%;">✦</div>
 <div class="pixel-star" style="top:20%; right:20%;">✦</div>
 
-<header class="text-center py-16">
-  <div class="max-w-4xl mx-auto px-6">
-    <h1 class="text-3xl md:text-4xl title-font mb-6">Kept.</h1>
-    <div class="w-24 h-2 mx-auto mb-6" style="background: repeating-linear-gradient(90deg,#000,#000 12px,transparent 12px,transparent 24px);"></div>
-    <p class="text-base md:text-lg mb-8 italic">
-      <span id="typed-text"></span>
-    </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
-      <a href="#gallery" class="cute-btn link-plain"><i class="fas fa-images mr-2"></i> EXPLORE</a>
-      <a href="admin/login.php" class="cute-btn link-plain" style="background:var(--purple);"><i class="fas fa-lock mr-2"></i> ADMIN PANEL</a>
+<div class="pixel-star" style="top:85%; right:15%;">✦</div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="floating-element" data-aos="fade-down">
+      <h1 class="text-4xl md:text-6xl title-font mb-6 gradient-text">Kept.</h1>
+    </div>
+    
+    <div class="w-32 h-2 mx-auto mb-8 section-divider" style="background: repeating-linear-gradient(90deg,#000,#000 12px,transparent 12px,transparent 24px);"></div>
+    
+    <div class="typing-container mb-10" data-aos="fade-up" data-aos-delay="200">
+      <p class="text-lg md:text-xl italic">
+        <span id="typed-text"></span>
+      </p>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12" data-aos="fade-up" data-aos-delay="400">
+      <a href="#gallery" class="cute-btn link-plain pulse-animation">
+        <i class="fas fa-images mr-2"></i> EXPLORE MEMORIES
+      </a>
+      <a href="admin/login.php" class="cute-btn link-plain" style="background:var(--purple);">
+        <i class="fas fa-lock mr-2"></i> ADMIN PANEL
+      </a>
     </div>
 
-    <!-- Visitors -->
-    <div class="flex justify-center">
-      <div class="pixel-border-thick px-6 py-4">
+    <!-- Enhanced Visitors Counter -->
+    <div class="flex justify-center" data-aos="fade-up" data-aos-delay="600">
+      <div class="visitor-counter">
         <div class="flex flex-wrap gap-8 justify-center items-center">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 pixel-border flex items-center justify-center"><i class="fas fa-users"></i></div>
+            <div class="w-12 h-12 pixel-border flex items-center justify-center pulse-animation">
+              <i class="fas fa-users"></i>
+            </div>
             <div>
-              <div class="text-xs">VISITOR</div>
-              <span id="totalVisitors" class="font-semibold text-lg"><?= (int)$totalVisitors; ?></span>
+              <div class="text-xs uppercase tracking-wider">VISITORS</div>
+              <span id="totalVisitors" class="font-bold text-xl"><?= (int)$totalVisitors; ?></span>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 pixel-border flex items-center justify-center"><i class="fas fa-signal"></i></div>
+            <div class="w-12 h-12 pixel-border flex items-center justify-center pulse-animation">
+              <i class="fas fa-signal"></i>
+            </div>
             <div>
-              <div class="text-xs">ONLINE</div>
-              <span id="onlineVisitors" class="font-semibold text-lg"><?= (int)$onlineVisitors; ?></span>
+              <div class="text-xs uppercase tracking-wider">ONLINE</div>
+              <span id="onlineVisitors" class="font-bold text-xl"><?= (int)$onlineVisitors; ?></span>
             </div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
-</header>
+</section>
 
-<main id="gallery" class="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
-  <div class="text-center mb-12">
-    <h2 class="text-xl title-font" style="text-shadow:3px 3px 0 #fff;">Kept Moments</h2>
-    <p class="mt-2 text-sm italic">Little memories I didn't want to forget.</p>
+<!-- Gallery Section -->
+<main id="gallery" class="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+  <div class="text-center mb-12" data-aos="fade-up">
+    <h2 class="text-2xl md:text-3xl title-font gradient-text">Kept Moments</h2>
+    <p class="mt-3 text-base italic max-w-2xl mx-auto">Little memories I didn't want to forget, preserved in digital frames.</p>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+  <div class="section-divider"></div>
+
+  <div class="album-grid">
     <?php if ($albums): foreach ($albums as $album): 
       $aid    = (int)$album['id']; 
       $photos = $album['photos']; 
@@ -240,14 +406,8 @@ if ($albums) {
       <a href="post.php?id=<?= $aid ?>" class="album-link block memory-card pixel-card group relative overflow-hidden" data-aos="fade-up" aria-label="Open album">
         <div class="relative overflow-hidden">
           <div class="card-topbar">
-            <span class="card-chip card-title">
-              <?= htmlspecialchars($album['title'] ?: 'Untitled', ENT_QUOTES, 'UTF-8') ?>
-            </span>
             <span class="card-chip">
               <?= date('M j, Y', strtotime($album['created_at'])) ?>
-            </span>
-            <span class="card-chip">
-              <i class="fa-regular fa-image mr-1"></i><?= count($photos) ?> photos
             </span>
             <span class="card-chip" style="display:flex;align-items:center;gap:6px;">
               <button type="button"
@@ -289,20 +449,20 @@ if ($albums) {
       </a>
     <?php endforeach; else: ?>
       <div class="col-span-full text-center py-20 pixel-card" data-aos="fade-up">
-        <div class="mx-auto w-16 h-16 pixel-border rounded-full flex items-center justify-center mb-4">
-          <i class="fas fa-camera text-xl"></i>
+        <div class="mx-auto w-20 h-20 pixel-border rounded-full flex items-center justify-center mb-6 pulse-animation">
+          <i class="fas fa-camera text-2xl"></i>
         </div>
-        <h3 class="text-lg font-medium mb-2">Empty Archive</h3>
-        <p class="opacity-70 max-w-md mx-auto italic">No memories captured yet...</p>
+        <h3 class="text-xl font-medium mb-3">Empty Archive</h3>
+        <p class="opacity-70 max-w-md mx-auto italic">No memories captured yet. Check back later for new moments!</p>
       </div>
     <?php endif; ?>
   </div>
 </main>
 
-<!-- Music Button -->
-<div class="fixed bottom-6 right-6 z-50">
-  <button id="toggleMusic" class="cute-btn" style="width:60px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
-    <i id="musicIcon" class="fas fa-play"></i>
+<!-- Enhanced Music Player -->
+<div class="music-player">
+  <button id="toggleMusic" class="cute-btn pulse-animation" style="width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:10px;">
+    <i id="musicIcon" class="fas fa-play mb-1"></i>
   </button>
 </div>
 
@@ -310,29 +470,34 @@ if ($albums) {
   <source src="<?= htmlspecialchars($musicSrc, ENT_QUOTES, 'UTF-8') ?>" type="audio/mpeg">
 </audio>
 
-<footer class="px-6 pb-14">
-  <div class="max-w-4xl mx-auto text-center">
-    <div class="py-4">
-      <div class="chip">
+<!-- Enhanced Footer -->
+<footer class="footer-section">
+  <div class="max-w-4xl mx-auto text-center px-6">
+    <div class="py-6">
+      <div class="chip inline-block">
         <i class="fas fa-clock"></i>
         <span id="clock" class="font-mono">00:00:00</span>
         <span>WIB</span>
       </div>
     </div>
-    <div class="py-6 my-4">
-      <p class="italic text-base">"What was once a moment, now a memory."</p>
-      <p class="text-sm mt-2 opacity-70">— Kept.</p>
+    
+    <div class="py-6 my-4 border-t border-b border-black border-dashed">
+      <p class="italic text-lg">"What was once a moment, now a memory."</p>
+      <p class="text-base mt-3 opacity-70">— Kept.</p>
     </div>
-    <div><p class="text-sm opacity-70">© 2025 Kept. All memories preserved.</p></div>
+    
+    <div class="mb-6">
+      <p class="text-sm opacity-70">© 2025 Kept. All memories preserved.</p>
+    </div>
 
-    <div class="mt-6 flex justify-center gap-6">
-      <a href="https://www.instagram.com/n4ve.666/" class="pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
+    <div class="flex justify-center gap-6">
+      <a href="https://www.instagram.com/n4ve.666/" class="social-icon pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
         <i class="fab fa-instagram"></i>
       </a>
-      <a href="https://github.com/newbiema" class="pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
+      <a href="https://github.com/newbiema" class="social-icon pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
         <i class="fab fa-github"></i>
       </a>
-      <a href="mailto:evanjamaq123@gmail.com" class="pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
+      <a href="mailto:evanjamaq123@gmail.com" class="social-icon pixel-border w-12 h-12 flex items-center justify-center link-plain" style="background:#fff;">
         <i class="fas fa-envelope"></i>
       </a>
     </div>
@@ -341,10 +506,21 @@ if ($albums) {
 
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-  AOS.init({ duration: 800, easing: 'ease-out-back', once: true, offset: 50 });
+  AOS.init({ 
+    duration: 800, 
+    easing: 'ease-out-back', 
+    once: true, 
+    offset: 50,
+    disable: window.innerWidth < 768
+  });
+  
   new Typed('#typed-text', {
-    strings: ["just memories...", "kept within frames...", "pieces of me..."],
-    typeSpeed: 80, backSpeed: 50, loop: true, cursorChar: '_', showCursor: true
+    strings: ["just memories...", "kept within frames...", "pieces of me...", "digital nostalgia..."],
+    typeSpeed: 80, 
+    backSpeed: 50, 
+    loop: true, 
+    cursorChar: '_', 
+    showCursor: true
   });
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -378,7 +554,8 @@ if ($albums) {
         text: 'Kamu sudah mengapresiasi album ini.',
         icon: 'info',
         confirmButtonText: 'OK',
-        background: '#fff'
+        background: '#fff',
+        customClass: { popup: 'pixel-border' }
       });
       return;
     }
@@ -396,18 +573,30 @@ if ($albums) {
       el?.animate([{transform:'scale(1)'},{transform:'scale(1.25)'},{transform:'scale(1)'}], {duration:300});
     })
     .catch(() => {
-      Swal.fire({title:'Oops',text:'Gagal menyimpan like.',icon:'error',background:'#fff'});
+      Swal.fire({
+        title:'Oops',
+        text:'Gagal menyimpan like.',
+        icon:'error',
+        background:'#fff',
+        customClass: { popup: 'pixel-border' }
+      });
     });
   }
 
   const music = document.getElementById('backgroundMusic');
   const musicBtn = document.getElementById('toggleMusic');
   const musicIcon = document.getElementById('musicIcon');
+  
   musicBtn.addEventListener('click',()=>{ 
     if(music.paused){ 
-      music.play().then(()=>{ musicIcon.className='fas fa-pause'; });
+      music.play().then(()=>{ 
+        musicIcon.className='fas fa-pause mb-1';
+        musicBtn.classList.add('pulse-animation');
+      });
     } else { 
-      music.pause(); musicIcon.className='fas fa-play'; 
+      music.pause(); 
+      musicIcon.className='fas fa-play mb-1';
+      musicBtn.classList.remove('pulse-animation');
     } 
   });
 
@@ -431,6 +620,7 @@ if ($albums) {
   (function restoreMusicOnLoad(){
     const musicEl = document.getElementById('backgroundMusic');
     const icon  = document.getElementById('musicIcon');
+    const btn = document.getElementById('toggleMusic');
     if (!musicEl) return;
 
     try {
@@ -442,11 +632,13 @@ if ($albums) {
       }
       if (state.playing) {
         musicEl.play().then(() => {
-          if (icon) icon.className = 'fas fa-pause';
+          if (icon) icon.className = 'fas fa-pause mb-1';
+          if (btn) btn.classList.add('pulse-animation');
         }).catch(() => {
           const resumeOnce = () => {
             musicEl.play().then(() => {
-              if (icon) icon.className = 'fas fa-pause';
+              if (icon) icon.className = 'fas fa-pause mb-1';
+              if (btn) btn.classList.add('pulse-animation');
             }).finally(() => {
               document.removeEventListener('click', resumeOnce);
               document.removeEventListener('keydown', resumeOnce);
